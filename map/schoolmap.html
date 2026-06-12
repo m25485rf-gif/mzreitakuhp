@@ -1680,7 +1680,7 @@ body.fullscreen-mode .fullscreen-btn {
 
       <a href="../event.html" class="nav-item">
         <i class="fa-solid fa-calendar"></i><br>
-        イベント
+        舞台発表
       </a>
 
       <a href="schoolmap.html" class="nav-item">
@@ -1719,7 +1719,7 @@ const mapContainer = document.querySelector(".map-container");
 
 mapContainer.addEventListener("touchstart", (e) => {
   if (e.touches.length === 2) {
-    // 地図内でのマルチタッチイベントがページ全体に伝わるのを防ぐ
+    // 地図内でのマルチタッチ舞台発表がページ全体に伝わるのを防ぐ
     e.stopPropagation(); 
     
     const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -3045,7 +3045,7 @@ function handleFullscreenChange() {
   }
 }
 
-// ブラウザの全画面切り替えイベントを登録
+// ブラウザの全画面切り替え舞台発表を登録
 document.addEventListener("fullscreenchange", handleFullscreenChange);
 document.addEventListener("webkitfullscreenchange", handleFullscreenChange); // Safari用
 
@@ -3421,7 +3421,7 @@ let startY = 0;
 let startHeight = 0;
 
 
-// ⭕ イベント登録は外側で常に行う（画面回転などのバグを防ぐため）
+// ⭕ 舞台発表登録は外側で常に行う（画面回転などのバグを防ぐため）
 if (thumbWrapper && sidePanel) {
 
   // ① タッチ開始（ツマミを触った瞬間）
@@ -3685,7 +3685,7 @@ function openDestinationConfirm(nodeId, nodeName) {
   }
 }
 
-// ページ読み込み時にポップアップ内の3つのボタンにイベントを登録
+// ページ読み込み時にポップアップ内の3つのボタンに舞台発表を登録
 document.addEventListener("DOMContentLoaded", () => {
   const modal = document.getElementById('destinationConfirmModal');
   const cancelBtn = document.getElementById('confirmCancelBtn');
@@ -3884,7 +3884,7 @@ function toggleDropdownMenu() {
 }
 
 /**
- * イベントリスナーの登録（初期化関数）
+ * 舞台発表リスナーの登録（初期化関数）
  */
 function initDropdownNavigation() {
   const homeButton = document.querySelector('.main-home');
