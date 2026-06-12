@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>REIMEI SAI 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <header class="header">
+    <h1></h1>
+</header>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="sns-icons">
+
+    <a href="https://youtube.com/channel/UCFJVT4Su6274HvXNP6N4FPQ?si=SE4bb-UCBrIO2Qna" target="_blank" aria-label="YouTube">
+      <i class="fa-brands fa-youtube"></i>
+    </a>
+
+    <a href="https://www.instagram.com/reitaku_mizunami/" target="_blank" aria-label="Instagram">
+      <i class="fa-brands fa-instagram"></i>
+    </a>
+
+    <a href="https://x.com/reitaku_mizu" target="_blank" aria-label="X">
+      <i class="fa-brands fa-x-twitter"></i>
+    </a>
+
+    <a href="https://share.google/g6ToGVNRpaqc82Zp8" target="_blank" aria-label="Facebook">
+      <i class="fa-brands fa-facebook"></i>
+    </a>
+
+  </div>
+    
+  <button class="menu-btn" onclick="openMenu()">
+    <div class="bar">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    MENU
+  </button>
+
+</header>
+<div class="super-flashy-ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-move">
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★  </span>
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★ </span>
+    </div>
+  </div>
+</div>
+<div class="menu-overlay" id="menuOverlay">
+
+  <div class="menu-overlay-topbar">
+
+    <button class="close-btn" onclick="closeMenu()">
+      MENU <span class="close-icon">✕</span>
+    </button>
+
+  </div>
+
+  <div class="menu-overlay-content">
+
+    <ul>
+      <li><a href="index.html">TOP</a></li>
+      <li><a href="koutyou-aisatu.html">挨拶</a></li>
+      <li><a href="project.html">企画一覧</a></li>
+      <li><a href="event.html">舞台発表</a></li>
+      <li><a href="map/schoolmap.html">校内地図</a></li>
+      <li><a href="other.html">その他</a></li>
+    </ul>
+
+  </div>
+
+</div>
+
+  <section class="hero">
+    <div class="slider">
+      <img src="images/unnamed.png" class="slide active" alt="背景画像1">
+    </div>
+
+ 
+
+    <div class="schedule-box">
+      <div class="day">
+        <h3>Day 1</h3>
+        <p class="date">6月12日 Fri</p>
+        <p class="time">12:00 ~ 18:00</p>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="day">
+        <h3>Day 2</h3>
+        <p class="date">6月13日 Sat</p>
+        <p class="time">10:00 ~ 18:00</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="intro-video">
+  <h2>麗明際-PR-</h2>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/kzMV7JlwLd8?si=sAijIR1d6chQ9-ru" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+ 
+  <h2>麗明際-注意喚起-</h2>
+  <iframe width="560" height="315" src="https://www.youtube.com/embed/b_9T_PxMrME?si=305a94fX0Y8sVK1X" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+  </div><!-- イントロ動画 -->
+  <main>
+    <section class="greeting fade">
+      <h2>ご挨拶</h2>
+      <p>
+        本年度の麗明祭にご来場いただき、誠にありがとうございます。<br>
+        地域の皆様と共に、素晴らしい時間をお過ごしください。
+      </p>
+    </section>
+
+    <section class="rules fade">
+      <h2>注意事項・飲食ルール</h2>
+      <ul class="rule-list">
+        <li>ゴミは必ず指定の場所へ捨ててください。</li>
+        <li>校内での喫煙,飲酒は禁止されています。</li>
+        <li>飲食は指定されたエリアでお願いします。</li>
+        <li>危険行為や迷惑行為は禁止です。</li>
+        <li>貴重品の管理は各自で行ってください。</li>
+        <li>SNSへの投稿禁止(本人に確認した場合のみ許可します)</li>
+        <li>ライブ配信禁止</li>
+        <li>食堂でのスマホの使用は禁止します</li>
+        <li>ゲームなどの娯楽目的でスマホを使うことは禁止します(親は例外とします)</li>
+       </ul>
+    </section>
+  </main>
+
+ <nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <i class="fa-solid fa-house"></i><br>
+    ホーム
+  </a>
+
+  <a href="koutyou-aisatu.html" class="nav-item">
+    <i class="fa-solid fa-comments"></i><br>
+    挨拶
+  </a>
+
+  <a href="project.html" class="nav-item">
+    <i class="fa-solid fa-list"></i><br>
+    企画
+  </a>
+
+  <a href="event.html" class="nav-item">
+    <i class="fa-solid fa-calendar"></i><br>
+    舞台発表
+  </a>
+
+  <a href="map/schoolmap.html" class="nav-item">
+    <i class="fa-solid fa-map"></i><br>
+    校内地図
+  </a>
+
+  <a href="other.html" class="nav-item">
+    <i class="fa-solid fa-circle-info"></i><br>
+    その他
+  </a>
+</nav>
+
+<footer class="footer">
+      <p>© 2026 REIMEI SAI</p>
+</footer>
+
+
+<script src="script.js"></script>
+
+<script>
+function openMenu() {
+document.getElementById("menuOverlay").classList.add("open");
+}
+
+function closeMenu() {
+document.getElementById("menuOverlay").classList.remove("open");
+}
+</script>
+
+</body>
+</html>

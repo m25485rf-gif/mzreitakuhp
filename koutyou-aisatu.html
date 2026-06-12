@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>あいさつ</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP&display=swap" rel="stylesheet">
+</head>
+  <style>
+    .topbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: #1e3a8a;
+      border-bottom: none;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 20px;
+      height: 52px;
+    }
+    .topbar .sns-icons {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .topbar .sns-icons a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #111;
+      text-decoration: none;
+      transition: opacity 0.2s;
+    }
+    .topbar .sns-icons a:hover { opacity: 0.6; }
+    .topbar .sns-icons svg { width: 22px; height: 22px; fill: currentColor; }
+    .topbar .menu-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #fff9f9;
+      padding: 6px 8px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .topbar .menu-btn:hover { background: #0202ff; }
+    .topbar .menu-btn .bar { display: flex; flex-direction: column; gap: 4px; }
+    .topbar .menu-btn .bar span {
+      display: block;
+      width: 20px;
+      height: 2px;
+      background: #111;
+      border-radius: 2px;
+    }
+    .menu-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: #fff;
+      display: flex;
+      flex-direction: column;
+      transform: translateY(-100%);
+      transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    .menu-overlay.open { transform: translateY(0); }
+    .menu-overlay-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 12px;
+      padding: 0 20px;
+      height: 52px;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+    }
+    .menu-overlay-topbar .sns-icons { display: flex; align-items: center; gap: 14px; }
+    .menu-overlay-topbar .sns-icons a { display: flex; align-items: center; color: #111; text-decoration: none; transition: opacity 0.2s; }
+    .menu-overlay-topbar .sns-icons a:hover { opacity: 0.6; }
+    .close-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #0a0a0a;
+      padding: 6px 8px;
+      border-radius: 4px;
+      transition: background 0.15s;
+    }
+    .close-btn:hover { background: #f2f2f2; }
+    .close-icon { font-size: 20px; line-height: 1; font-weight: 300; }
+    .menu-overlay-content { padding: 48px 40px; }
+    .menu-section-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: #e85d2a;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+    }
+    .menu-section ul { list-style: none; padding: 0; margin: 0; }
+    .menu-section ul li { margin-bottom: 10px; }
+    .menu-section ul li a { font-size: 15px; color: #111; text-decoration: none; transition: color 0.2s; }
+    .menu-section ul li a:hover { color: #e85d2a; }
+    .menu-divider { border: none; border-top: 1px solid #e0e0e0; margin: 12px 0 0; }
+    body { padding-top: 52px; }
+    .header, .nav { display: none; }
+  </style>
+</head>
+
+<body>
+
+<header class="header">
+  <h1></h1>
+</header>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="sns-icons">
+
+    <a href="https://youtube.com/channel/UCFJVT4Su6274HvXNP6N4FPQ?si=SE4bb-UCBrIO2Qna" target="_blank" aria-label="YouTube">
+      <i class="fa-brands fa-youtube"></i>
+    </a>
+
+    <a href="https://www.instagram.com/reitaku_mizunami/" target="_blank" aria-label="Instagram">
+      <i class="fa-brands fa-instagram"></i>
+    </a>
+
+    <a href="https://x.com/reitaku_mizu" target="_blank" aria-label="X">
+      <i class="fa-brands fa-x-twitter"></i>
+    </a>
+
+    <a href="https://share.google/g6ToGVNRpaqc82Zp8" target="_blank" aria-label="Facebook">
+      <i class="fa-brands fa-facebook"></i>
+    </a>
+
+  </div>
+
+  <button class="menu-btn" onclick="openMenu()">
+    <div class="bar">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    MENU
+  </button>
+</header>
+<div class="super-flashy-ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-move">
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★  </span>
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★ </span>
+    </div>
+  </div>
+</div>
+<!-- MENU OVERLAY -->
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay-topbar">
+    <button class="close-btn" onclick="closeMenu()">
+      MENU <span class="close-icon">✕</span>
+    </button>
+  </div>
+
+  <div class="menu-overlay-content">
+    <ul>
+      <li><a href="index.html">TOP</a></li>
+      <li><a href="koutyou-aisatu.html">挨拶</a></li>
+      <li><a href="project.html">企画一覧</a></li>
+      <li><a href="event.html">舞台発表</a></li>
+      <li><a href="map/schoolmap.html">校内地図</a></li>
+      <li><a href="other.html">その他</a></li>
+    </ul>
+  </div>
+</div>
+
+<main>
+  <section class="messages">
+    <h2 class="section-title">ご挨拶</h2>
+    <div class="message-container">
+
+      <div class="message-card">
+      
+        <h3>文化祭実行委員長</h3>
+        <p class="name">青野　史弥</p>
+        <p>
+         今年の麗明祭は、生徒一人ひとりの想いや努力を形にし、来場してくださる皆様に楽しんでいただける文化祭を目指して準備を進めてまいりました。クラス企画や部活動の発表、有志による企画など、それぞれに工夫と情熱が込められています。
+文化祭は、生徒たちが仲間と協力し、一つの目標に向かって挑戦する大切な機会です。準備期間を通して培った団結力や創造力を、ぜひ会場で感じていただければ幸いです。
+ご来場いただく皆様にとって、笑顔あふれる思い出深い一日となることを願っております。どうぞ最後まで麗明祭2026をお楽しみください。
+        </p>
+      </div>
+
+      <div class="message-card">
+   
+        <h3>生徒会長</h3>
+        <p class="name">三宅　航平</p>
+        <p>
+          麗明祭にお越しくださり、ありがとうございます。私たち生徒は、一人ひとりが個性的で、「自分の好きなこと」「興味があること」「得意なこと」など、さまざまなことを探究しています。その過程で新しい「自分」に出会い、それぞれの場所で輝いています。この２日間を通して、そんな私達の輝きを存分にご覧ください。
+
+        </p>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <i class="fa-solid fa-house"></i><br>
+    ホーム
+  </a>
+
+  <a href="koutyou-aisatu.html" class="nav-item">
+    <i class="fa-solid fa-comments"></i><br>
+    挨拶
+  </a>
+
+  <a href="project.html" class="nav-item">
+    <i class="fa-solid fa-list"></i><br>
+    企画
+  </a>
+
+  <a href="event.html" class="nav-item">
+    <i class="fa-solid fa-calendar"></i><br>
+    舞台発表
+  </a>
+
+  <a href="map/schoolmap.html" class="nav-item">
+    <i class="fa-solid fa-map"></i><br>
+    校内地図
+  </a>
+
+  <a href="other.html" class="nav-item">
+    <i class="fa-solid fa-circle-info"></i><br>
+    その他
+  </a>
+</nav>
+
+<footer class="footer">
+  <p>© 2026 REIMEI SAI</p>
+</footer>
+
+<script>
+  function openMenu() {
+    document.getElementById('menuOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMenu() {
+    document.getElementById('menuOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.getElementById('menuOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeMenu();
+  });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeMenu();
+  });
+</script>
+
+</body>
+</html>

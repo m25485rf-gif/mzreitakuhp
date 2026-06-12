@@ -1,0 +1,615 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企画一覧 | REIMEI SAI 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body>
+
+<header class="header">
+  <h1></h1>
+</header>
+
+<header class="topbar">
+  <div class="sns-icons">
+    <a href="https://youtube.com/channel/UCFJVT4Su6274HvXNP6N4FPQ?si=SE4bb-UCBrIO2Qna" target="_blank" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+    <a href="https://www.instagram.com/reitaku_mizunami/" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+    <a href="https://x.com/reitaku_mizu" target="_blank" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+    <a href="https://share.google/g6ToGVNRpaqc82Zp8" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+  </div>
+  <button class="menu-btn" onclick="openMenu()">
+    <div class="bar"><span></span><span></span><span></span></div>
+    MENU
+  </button>
+</header>
+<div class="super-flashy-ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-move">
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★  </span>
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★ </span>
+    </div>
+  </div>
+</div>
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay-topbar">
+    <button class="close-btn" onclick="closeMenu()">MENU <span class="close-icon">✕</span></button>
+  </div>
+  <div class="menu-overlay-content">
+    <ul>
+      <li><a href="index.html">TOP</a></li>
+      <li><a href="koutyou-aisatu.html">挨拶</a></li>
+      <li><a href="project.html">企画一覧</a></li>
+      <li><a href="event.html">舞台発表</a></li>
+      <li><a href="map/schoolmap.html">校内地図</a></li>
+      <li><a href="other.html">その他</a></li>
+    </ul>
+  </div>
+</div>
+  <section class="projects">
+  <div class="project-search">
+    <input type="text" id="searchBox" placeholder="企画名・クラス名を検索">
+  </div>
+
+  <div class="project-tabs">
+    <a href="yuushi.html">5・6年有志企画</a>
+    <a href="yonen.html">4年企画</a>
+    <a href="kounai.html">校内発表</a>
+    <a href="low.html">1・2・3年企画</a>
+  </div>
+  <div class="page-title">
+    <h1>PROJECTS</h1>
+    <p>麗明祭2026 企画一覧</p>
+  </div>
+  
+</div>
+<div class="project-menu">
+<!-- ===== 5・6年有志企画 ===== -->
+  <div class="category-block" id="yuushi">
+    <div class="category-header">
+      <h3>5・6年有志企画</h3>
+      <div class="category-line"></div>
+      </div>
+    <div class="project-grid">
+      <!-- 1つ目の企画：T＆F -->
+      <div class="project-card" onclick="toggleDetail('tf')">
+        <img src="./images/tousou.webp" alt="T＆F" class="project-image">
+        <div class="project-text">
+          <h3>T＆F</h3>
+          <p>メイン動画、｢逃走中｣はもちろん、普段の活動風景も見ていただけたらうれしいです！楽しい時間を陸部と共に過ごしましょう！！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">5-1</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=5-1" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-tf">
+        <div class="detail-inner">
+          <p class="detail-org">5−1</p>
+          <h2 class="detail-title">T＆F</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 5-1</span>
+          <div class="detail-body">
+            <img src="./images/tousou.webp" alt="T＆F" class="detail-image">
+            <div class="detail-desc"><p>メイン動画、｢逃走中｣はもちろん、普段の活動風景も見ていただけたらうれしいです！楽しい時間を陸部と共に過ごしましょう！！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 2つ目の企画：Dreamy Shot -->
+      <div class="project-card" onclick="toggleDetail('dreamy')">
+        <img src="./images/dreamy shot.webp" alt="Dreamy Shot" class="project-image">
+        <div class="project-text">
+          <h3>Dreamy Shot</h3>
+          <p>バレエコアをイメージした、とびきりかわいいフォトスポットです🩰🎀 文化祭の特別な𝒎𝒆𝒎𝒐𝒓𝒚を、写真で残してみませんか✨</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">5−2</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=5-2" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-dreamy">
+        <div class="detail-inner">
+          <p class="detail-org">5−2</p>
+          <h2 class="detail-title">Dreamy Shot</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 5-2</span>
+          <div class="detail-body">
+            <img src="./images/dreamy shot.webp" alt="Dreamy Shot" class="detail-image">
+            <div class="detail-desc"><p>バレエコアをイメージした、とびきりかわいいフォトスポットです🩰🎀 文化祭の特別な𝒎𝒆𝒎𝒐𝒓𝒚を、写真で残してみませんか✨</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 3つ目の企画：占いの館 -->
+      <div class="project-card" onclick="toggleDetail('uranai')">
+        <img src="./images/uranai.webp" alt="占いの館" class="project-image">
+        <div class="project-text">
+          <h3>占いの館</h3>
+          <p>あなたの運命、占います。さぁ、扉の向こうで、あなたの運命をのぞいてみませんか？？</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">5−3</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=5-3" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-uranai">
+        <div class="detail-inner">
+          <p class="detail-org">5−3</p>
+          <h2 class="detail-title">占いの館</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 5-3</span>
+          <div class="detail-body">
+            <img src="./images/uranai.webp" alt="占いの館" class="detail-image">
+            <div class="detail-desc"><p>あなたの運命、占います。さぁ、扉の向こうで、あなたの運命をのぞいてみませんか？？</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 4つ目の企画：Abvamal Azul -->
+      <div class="project-card" onclick="toggleDetail('abvamal')">
+        <img src="./images/ka-do.webp" alt="Abvamal Azul" class="project-image">
+        <div class="project-text">
+          <h3>Abvamal Azul</h3>
+          <p>ボスを討伐せよ！約15分（1~4人）で遊べるゲームだ！ルールやカードに慣れるほど上達して楽しめる！君の挑戦を待っている！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">5−4</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=5-4" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-abvamal">
+        <div class="detail-inner">
+          <p class="detail-org">5−4</p>
+          <h2 class="detail-title">Abvamal Azul</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 5-4</span>
+          <div class="detail-body">
+            <img src="./images/ka-do.webp" alt="Abvamal Azul" class="detail-image">
+            <div class="detail-desc"><p>ボスを討伐せよ！約15分（1~4人）で遊べるゲームだ！ルールやカードに慣れるほど上達して楽しめる！君の挑戦を待っている！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 5つ目の企画：かわいすぎて滅 -->
+      <div class="project-card" onclick="toggleDetail('kawaii')">
+        <img src="./images/kawaisugite.webp" alt="可愛すぎて滅" class="project-image">
+        <div class="project-text">
+          <h3>かわいすぎて滅</h3>
+          <p>様々な種類のフォトスポットを用意しています！ピンクを基調に「かわいい」を意識したフォトスポットになっています。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">6−1</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=6-1" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-kawaii">
+        <div class="detail-inner">
+          <p class="detail-org">6−1</p>
+          <h2 class="detail-title">かわいすぎて滅</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 北大</span>
+          <div class="detail-body">
+            <img src="./images/kawaisugite.webp" alt="可愛すぎて滅" class="detail-image">
+            <div class="detail-desc"><p>様々な種類のフォトスポットを用意しています！ピンクを基調に「かわいい」を意識したフォトスポットになっています。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+
+      <!-- 1つ目の企画：コミテ -->
+      <div class="project-card" onclick="toggleDetail('komite')">
+        <img src="./images/komite.webp" alt="コミテ" class="project-image">
+        <div class="project-text">
+          <h3>コミテ</h3>
+          <p>コミック展示略してコミテ。本屋の回し者やってます。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">6−2</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=6-2" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-komite">
+        <div class="detail-inner">
+          <p class="detail-org">6−2</p>
+          <h2 class="detail-title">コミテ</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 6-2</span>
+          <div class="detail-body">
+            <img src="./images/komite.webp" alt="コミテ" class="detail-image">
+            <div class="detail-desc"><p>コミック展示略してコミテ。本屋の回し者やってます。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 2つ目の企画：ちくちゃん神社 -->
+      <div class="project-card" onclick="toggleDetail('chiku')">
+        <img src="./images/tiku.webp" alt="ちくちゃん神社" class="project-image">
+        <div class="project-text">
+          <h3>ちくちゃん神社</h3>
+          <p>絵麻、おみくじ、謎解き、フォトスポットなど麗澤らしい神社になってます！ぜひ来てください！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">6−3</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=6-3" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-chiku">
+        <div class="detail-inner">
+          <p class="detail-org">6−3</p>
+          <h2 class="detail-title">ちくちゃん神社</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 6-3</span>
+          <div class="detail-body">
+            <img src="./images/tiku.webp" alt="ちくちゃん神社" class="detail-image">
+            <div class="detail-desc"><p>絵麻、おみくじ、謎解き、フォトスポットなど麗澤らしい神社になってます！ぜひ来てください！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 3つ目の企画：Remin -->
+      <div class="project-card" onclick="toggleDetail('remin')">
+        <img src="./images/remin.webp" alt="Remin" class="project-image">
+        <div class="project-text">
+          <h3>Remin</h3>
+          <p>先輩方から受け継いだブルーベリー畑で採れたブルーベリーを使ったパンと和菓子を販売します！新メンバー募集中です！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">6−4</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=6-4" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-remin">
+        <div class="detail-inner">
+          <p class="detail-org">6−4</p>
+          <h2 class="detail-title">Remin</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 6-4</span>
+          <div class="detail-body">
+            <img src="./images/remin.webp" alt="Remin" class="detail-image">
+            <div class="detail-desc"><p>先輩方から受け継いだブルーベリー畑で採れたブルーベリーを使ったパンと和菓子を販売します！新メンバー募集中です！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 4つ目の企画：青木もっちょ -->
+      <div class="project-card" onclick="toggleDetail('aoki')">
+        <img src="./images/aokimo.webp" alt="AOKI MOCCHO" class="project-image">
+        <div class="project-text">
+          <h3>青木もっちょ</h3>
+          <p>学校内に隠されたスタンプを探して豪華景品をゲット！冷房完備の休憩室でゆっくりもできるよ✨️</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">西大</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=西大" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-aoki">
+        <div class="detail-inner">
+          <p class="detail-org">西大</p>
+          <h2 class="detail-title">青木もっちょ</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 西大</span>
+          <div class="detail-body">
+            <img src="./images/aokimo.webp" alt="AOKI MOCCHO" class="detail-image">
+            <div class="detail-desc"><p>学校内に隠されたスタンプを探して豪華景品をゲット！冷房完備の休憩室でゆっくりもできるよ✨️</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 5つ目の企画：♡△ふぃにきゃん△♡ -->
+      <div class="project-card" onclick="toggleDetail('fini')">
+        <img src="./images/da-tsu.webp" alt="♡△ふぃにきゃん△♡" class="project-image">
+        <div class="project-text">
+          <h3>♡△ふぃにきゃん△♡</h3>
+          <p>ストラックアウトと人間すごろくをやっています！景品に世界に1枚しかない先生チェキがあります。ぜひ足を運んでみてください。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">南大</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=南大" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-fini">
+        <div class="detail-inner">
+          <p class="detail-org">南大</p>
+          <h2 class="detail-title">♡△ふぃにきゃん△♡</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 南大</span>
+          <div class="detail-body">
+            <img src="./images/da-tsu.webp" alt="♡△ふぃにきゃん△♡" class="detail-image">
+            <div class="detail-desc"><p>ストラックアウトと人間すごろくをやっています！景品に世界に1枚しかない先生チェキがあります。ぜひ足を運んでみてください。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 6つ目の企画：温泉卓球 -->
+      <div class="project-card" onclick="toggleDetail('takkyuu')">
+        <img src="./images/takkyuu.webp" alt="温泉卓球" class="project-image">
+        <div class="project-text">
+          <h3>温泉卓球</h3>
+          <p>卓球部がやってます。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">北大</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=北大" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-takkyuu">
+        <div class="detail-inner">
+          <p class="detail-org">北大</p>
+          <h2 class="detail-title">温泉卓球</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 北大</span>
+          <div class="detail-body">
+            <img src="./images/takkyuu.webp" alt="温泉卓球" class="detail-image">
+            <div class="detail-desc"><p>卓球部がやってます。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+
+           <!-- 1つ目の企画：プリンセス握手会 -->
+      <div class="project-card" onclick="toggleDetail('princess')">
+        <img src="./images/princess.webp" alt="プリンセス握手会" class="project-image">
+        <div class="project-text">
+          <h3>プリンセス握手会</h3>
+          <p>来た人全員メロメロ確定ですわ❤プリンセスからの超豪華プレゼントと、とびきりの愛までございますの✨来ないと許しませんわよ？</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">東南32</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=東南32" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-princess">
+        <div class="detail-inner">
+          <p class="detail-org">東南32</p>
+          <h2 class="detail-title">プリンセス握手会</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 東南32</span>
+          <div class="detail-body">
+            <img src="./images/princess.webp" alt="プリンセス握手会" class="detail-image">
+            <div class="detail-desc"><p>来た人全員メロメロ確定ですわ❤プリンセスからの超豪華プレゼントと、とびきりの愛までございますの✨来ないと許しませんわよ？</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 2つ目の企画：シスター前田の占い室 -->
+      <div class="project-card" onclick="toggleDetail('sister')">
+        <img src="./images/uranai sister.webp" alt="シスター前田の占い室" class="project-image">
+        <div class="project-text">
+          <h3>シスター前田の占い室</h3>
+          <p>占っちゃうぞ！♡</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">東11</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=東11" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-sister">
+        <div class="detail-inner">
+          <p class="detail-org">東11</p>
+          <h2 class="detail-title">シスター前田の占い室</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 東11</span>
+          <div class="detail-body">
+            <img src="./images/uranai sister.webp" alt="シスター前田の占い室" class="detail-image">
+            <div class="detail-desc"><p>占っちゃうぞ！♡</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 3つ目の企画：お化け屋敷 -->
+      <div class="project-card" onclick="toggleDetail('obake')">
+        <img src="./images/obakeyasiki.webp" alt="お化け屋敷" class="project-image">
+        <div class="project-text">
+          <h3>お化け屋敷</h3>
+          <p>昨年に引き続きお化け屋敷をします。教室も広くなり、クオリティも上がりました。人数は限られますが、ぜひ来てください！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理（元のリンク先 goal=自学教室 を指定） -->
+          <div class="project-footer">
+            <span class="class-tag">自学</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=自学教室" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-obake">
+        <div class="detail-inner">
+          <p class="detail-org">自学</p>
+          <h2 class="detail-title">お化け屋敷</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 自学</span>
+          <div class="detail-body">
+            <img src="./images/obakeyasiki.webp" alt="お化け屋敷" class="detail-image">
+            <div class="detail-desc"><p>昨年に引き続きお化け屋敷をします。教室も広くなり、クオリティも上がりました。人数は限られますが、ぜひ来てください！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 4つ目の企画：Rei Tech -->
+      <div class="project-card" onclick="toggleDetail('reitech')">
+        <img src="./images/reitech.webp" alt="Rei Tech" class="project-image">
+        <div class="project-text">
+          <h3>Rei Tech</h3>
+          <p>６年目にしてMinecraftのサーバーをリセットしたDS※今年はMinecraft体験はしません</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">PCルーム</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=PCルーム" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-reitech">
+        <div class="detail-inner">
+          <p class="detail-org">PCルーム</p>
+          <h2 class="detail-title">Rei Tech</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> PCルーム</span>
+          <div class="detail-body">
+            <img src="./images/reitech.webp" alt="Rei Tech" class="detail-image">
+            <div class="detail-desc"><p>６年目にしてMinecraftのサーバーをリセットしたDS※今年はMinecraft体験はしません</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 5つ目の企画：陶芸部 -->
+      <div class="project-card" onclick="toggleDetail('tougei')">
+        <img src="./images/tougei.webp" alt="陶芸部" class="project-image">
+        <div class="project-text">
+          <h3>陶芸部</h3>
+          <p>土と一生懸命に向き合っています！ぜひ見に来て下さい！！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">コモン</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=コモンホール中央" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-tougei">
+        <div class="detail-inner">
+          <p class="detail-org">コモン</p>
+          <h2 class="detail-title">陶芸部</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> コモン</span>
+          <div class="detail-body">
+            <img src="./images/tougei.webp" alt="陶芸部" class="detail-image">
+            <div class="detail-desc"><p>土と一生懸命に向き合っています！ぜひ見に来て下さい！！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 6つ目の企画：ガチャプロ -->
+      <div class="project-card" onclick="toggleDetail('gacha')">
+        <img src="./images/minomino.webp" alt="ガチャプロ" class="project-image">
+        <div class="project-text">
+          <h3>ガチャプロ</h3>
+          <p>ご好評につき、再販売！買えたら超ラッキー</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">コモン</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=コモンホール中央" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-gacha">
+        <div class="detail-inner">
+          <p class="detail-org">コモン</p>
+          <h2 class="detail-title">ガチャプロ</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> コモン</span>
+          <div class="detail-body">
+            <img src="./images/minomino.webp" alt="ガチャプロ" class="detail-image">
+            <div class="detail-desc"><p>ご好評につき、再販売！買えたら超ラッキー</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+    </div><!-- .project-grid -->
+  </div><!-- .category-block -->
+
+
+    </div><!-- .project-grid -->
+  </div><!-- .category-block -->
+</section>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+ <nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <i class="fa-solid fa-house"></i><br>
+    ホーム
+  </a>
+
+  <a href="koutyou-aisatu.html" class="nav-item">
+    <i class="fa-solid fa-comments"></i><br>
+    挨拶
+  </a>
+
+  <a href="project.html" class="nav-item">
+    <i class="fa-solid fa-list"></i><br>
+    企画
+  </a>
+
+  <a href="event.html" class="nav-item">
+    <i class="fa-solid fa-calendar"></i><br>
+    舞台発表
+  </a>
+
+  <a href="map/schoolmap.html" class="nav-item">
+    <i class="fa-solid fa-map"></i><br>
+    校内地図
+  </a>
+
+  <a href="other.html" class="nav-item">
+    <i class="fa-solid fa-circle-info"></i><br>
+    その他
+  </a>
+</nav>
