@@ -1,0 +1,3988 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>校内地図</title>
+
+<style>
+/* ===== 1. 画面全体の背景とレイアウト設定 ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: sans-serif;
+  background-color: #323538;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  
+}
+
+body.route-mode .controls {
+  display: flex;
+}
+
+.zoom-controls{
+  position: fixed;
+  top: 150px;
+  left: 20px;
+  z-index: 9999;
+  padding: 8px;
+  background: 	rgba(250,250,245 ,0.9);
+  border: 1px solid #2B6360;
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  /* ===== ズームボタンエリア（縦並び） ===== */
+
+  display: flex;
+  flex-direction: column; /* ★ ここで縦並びに指定しています */
+  gap: 8px;               /* ボタン同士の隙間（お好みで数値を調整してください） */
+  width: fit-content;     /* コンテナの幅をボタンのサイズにぴったり合わせる */
+  width: 40px;
+ 
+}
+
+/* ===== ズームボタン自体を少し小さくする ===== */
+.zoom-controls button {
+  padding: 6px 12px;   /* 上下・左右の余白を減らす（元は 10px 18px） */
+  font-size: 12px;     /* 文字サイズを少し小さくする（元は 14px） */
+  min-width: 40px;     /* ＋と－のボタン幅が揃うように最小幅を設定 */
+}
+
+/* ===== 3. すべてのボタンの共通デザイン ===== */
+button {
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #2B6360; /* テキストは白 */
+  background-color: #FAFAF5; 
+  border: 1px solid rgba(44, 44, 44, 0.418);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* ボタンにカーソルを合わせた時の動き */
+button:hover {
+  background-color: #2B6360; /* ホバー時はゴールドに反転 */
+  color: #ffffff; /* テキストはネイビーに */
+  transform: translateY(-2px);
+}
+
+/* ===== 4. 地図を表示する大きな白いボード ===== */
+.map-container {
+  flex: 1;
+  margin: 10px;
+  background: #FAFAF5;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  overflow: auto;
+  position: relative;
+}
+
+.map-zoom {
+  transform-origin: top left;
+  padding: 24px;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+#ui-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  
+}
+
+.pin {
+  pointer-events: auto;
+  
+}
+
+/* ===== 5. ピンの共通設定 ===== */
+.pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  z-index: 10;
+}
+
+.you {
+  width: 14px;
+  height: 14px;
+  background: #007aff;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(0,122,255,0.6);
+  animation: pulse 1.5s infinite;
+}
+
+.toilet-pin {
+  width: 28px;
+  height: 28px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  border-radius: 8px;
+  transition: transform 0.2s;
+}
+
+/* 男子 */
+.toilet-pin.male {
+  background-image: url("toilet_male.jpg");
+}
+
+/* 女子 */
+.toilet-pin.female {
+  background-image: url("toilet_female.jpg");
+}
+
+.toilet-pin.all{
+  background-image:url("toilet_all.jpg")
+}
+
+.toilet-pin:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+/* 階段ピン（カスタム画像） */
+.stair-pin {
+  width: 32px;
+  height: 32px;
+  background-image: url("stair.jpg"); /* url() を使い、セミコロンを追加 */
+  background-size: contain;            /* コロンを追加 */
+  background-repeat: no-repeat;
+  transition: transform 0.2s;
+  border-radius: 12px;
+
+}
+
+.stair-pin:hover {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+/* 💡 移動先で赤くピカピカ光るハイライト用のアニメーション */
+.highlight {
+  border: 3px solid #ff3b30 !important;
+  background-color: rgba(255, 59, 48, 0.2);
+  border-radius: 6px;
+  animation: flash 0.8s infinite alternate;
+}
+@keyframes flash {
+  0% { box-shadow: 0 0 0px rgba(255,59,48,0.5); opacity: 0.6; }
+  100% { box-shadow: 0 0 20px rgba(255,59,48,1); opacity: 1; }
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+/* ===== 6. 階段クリック時のポップアップメニュー ===== */
+.stair-menu {
+  position: absolute;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  padding: 8px;
+  display: none;
+  z-index: 100;
+  gap: 4px;
+}
+.stair-menu button {
+  padding: 6px 12px;
+  font-size: 12px;
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+}
+
+.side-panel {
+  position: fixed;
+  right: 0;
+  transform: translateX(100%);
+  top: 0;
+  width: 260px;
+  height: 100%;
+  background: rgba(250,250,245 ,0.5);
+  border-left: 1px solid #ddd;
+  padding: 16px;
+  transition: right 0.3s;
+  z-index: 2000;
+  overflow-y: auto
+}
+
+.side-panel.open {
+   transform: translateX(0);
+  transition: all 0.2s ease; /* 表示 */
+}
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 20px;
+  display: none;
+  justify-content: space-between;
+  align-items: center;
+
+  background: rgba(26, 61, 59, 0.6);    /* 背景色をマップ全体のダークトーンに合わせる */
+  border-top: 1px solid rgba(255,255,255,0.2);
+  z-index: 9999;
+  flex-direction: row; 
+}
+
+.bottom-nav .nav-item {
+  flex: 1;
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+
+  padding: 10px 2px;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+    flex-direction: row; 
+}
+
+.bottom-nav .nav-item:hover {
+  background: rgba(43,99,96, 0.8);
+}
+.menu-button {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 80px;
+  height: 80px;
+  cursor: pointer;
+  z-index: 3000;
+  transition: all 0.2s ease;
+}
+
+.menu-button:hover {
+  transform: translateY(-2px) scale(1.05);
+
+}
+
+#indexMenu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+#indexMenu button {
+  font-size: 12px;
+  padding: 4px 8px;
+}
+
+.section {
+  margin-top: 20px;
+}
+
+.section h4 {
+  border-bottom: 1px solid #ccc;
+  margin-bottom: 6px;
+}
+
+.node-item {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 14px 12px;
+  margin: 8px 0;
+
+  font-size: 14px;
+  font-weight: bold;
+  color: #2B6360;
+
+  border: 1px solid #ddd;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+/* ホバー */
+.node-item:hover {
+  background: #2B6360;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* 押したとき */
+.node-item:active {
+  transform: scale(0.98);
+}
+/* ===== 6. 目的地ピン（.destination）の豪華なデザイン ===== */
+.destination {
+  width: 14px !important;       /* サイズを大きくして存在感をアップ */
+  height: 14px !important;
+  background: linear-gradient(135deg, #ff3b30 0%, #bd1c14 100%) !important; /* 高級感のある立体グラデーション */
+  border: 3px solid #ffffff !important; /* くっきりとした白いフチ */
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15 !important;       /* 他のピンより少し手前に表示 */
+  
+  /* 👇 楽しげに跳ねる動き ＋ 光が広がるアニメーションを適用 */
+  animation: destinationFancy 1.6s infinite ease-in-out !important;
+}
+
+/* ピンの中央に輝くゴールド（金）のコアを配置 */
+.destination::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background-color: #F1C40F; /* 鮮やかなゴールド */
+  border-radius: 50%;
+  box-shadow: 0 0 6px #F1C40F;
+}
+
+/* 豪華なバウンス（跳ねる）＆ パルス（波紋）アニメーション */
+@keyframes destinationFancy {
+  0% {
+    /* 元の位置（影は引き締まって濃い） */
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.6), 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    /* 1.1倍に大きくなりながら、少し上にフワッと浮き上がる */
+    transform: translate(-50%, -70%) scale(1.1); 
+    /* 周囲に赤い光の波紋を広げ、浮いた分だけ下の影を薄く広げる */
+    box-shadow: 0 0 0 12px rgba(255, 59, 48, 0), 0 14px 16px rgba(0, 0, 0, 0.2);
+  }
+  100% {
+    /* 元の位置に戻る */
+    transform: translate(-50%, -50%) scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0), 0 4px 10px rgba(0, 0, 0, 0.4);
+  }
+}
+.mode-buttons {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.mode-buttons button {
+  flex: 1;
+  font-size: 12px;
+  padding: 6px;
+}
+.selectable {
+  width: 18px;
+  height: 18px;
+  background: rgba(33, 88, 80, 0.4);
+  border: 2px solid #2B6360;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 50;
+}
+
+.selectable:hover {
+  background: rgba(43,99,96, 0.8);
+  transform: translate(-50%, -50%) scale(1.2);
+}
+.search-box {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 5000;
+}
+
+.suggestion-item {
+  padding: 8px;
+  cursor: pointer;
+}
+
+.suggestion-item:hover {
+  background: #2B6360;
+  color: white;
+}
+
+/* ===== 左上の階層表示スクリーン ===== */
+.floor-indicator {
+  position: fixed;
+  top: 60px;
+  left: -4px;
+  z-index: 9999;
+  padding: 24px 48px;
+  background: 	rgba(43,99,96, 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  
+  /* 文字のデザイン */
+  font-size: 20px;
+  font-weight: bold;
+  color: #ffffff; 
+  text-align: center;
+  
+  /* 下にある地図のクリック操作を邪魔しないようにする設定 */
+  pointer-events: none; 
+}
+.scroll-top-btn {
+  position: sticky;
+  bottom: 20px;
+  left: 90%;
+  margin-top: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background-color: #2B6360; /* メインカラー */
+  border: 2px solid #FAFAF5; /* オフホワイトの縁取り */
+  color: white;              /* 矢印は純白で際立たせる */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  z-index: 100;
+  padding: 0;
+}
+
+.scroll-top-btn:hover {
+  background-color: #FAFAF5; /* ホバーで背景をオフホワイトに反転 */
+  color: #2B6360;            /* 矢印をメインカラーに */
+  border: 2px solid #2B6360;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+/* ===== 画面上部中央のGoogleマップ風検索バー ===== */
+.google-search-container {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width:  80%;
+  max-width: 440px;
+  z-index: 10000;
+  background-color: white;
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 6px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  border: 1px solid #eee;
+}
+
+.google-search-container:focus-within {
+  border-color: #2B6360;
+  box-shadow: 0 4px 20px rgba(43, 99, 96, 0.2);
+}
+
+.google-search-icon {
+  color: #2B6360;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.google-search-container input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 16px;
+  font-weight: 500;
+  padding: 8px 0;
+  background: transparent;
+  color: #333;
+}
+
+/* ===== 検索結果サジェストリストの空中浮遊配置 ===== */
+.google-suggestion-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  max-height: 280px;
+  overflow-y: auto;
+  z-index: 10001;
+}
+
+.google-suggestion-list .suggestion-item {
+  padding: 14px 20px;
+  font-size: 15px;
+  cursor: pointer;
+  border-bottom: 1px solid #f7f7f7;
+  transition: all 0.2s ease;
+  color: #333;
+}
+
+.google-suggestion-list .suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.google-suggestion-list .suggestion-item:hover {
+  background-color: #FAFAF5;
+  color: #2B6360;
+  font-weight: bold;
+}
+
+.bottom-sheet-thumb-wrapper {
+  display: none;
+}
+
+.floorchangebtn {
+  position: fixed;
+  top: 280px;
+  left: 20px;
+  z-index: 9999;
+  display: flex;
+   padding: 4px;
+  background: rgba(250, 250, 245, 0.9);
+  border: 1px solid #2B6360;
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.floor-buttons {
+  position: fixed;
+  top: 250px;
+  left: 80px;
+  padding: 4px;
+  background: rgba(250, 250, 245, 0.9);
+  border: 1px solid #2B6360;
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  /* 縦並びにするための設定 */
+  display: flex;
+  flex-direction: column; 
+  gap: 8px;               /* ボタン同士の縦の隙間 */
+  width: fit-content;    /* 幅を中身（ボタン）に合わせる */
+}
+.floor-buttons button.active {
+  background-color: #2B6360 !important;
+  color: white !important;
+  border-color: #2B6360 !important;
+}
+/* =========================================
+   スクロール式 経路ナビゲーションパネル
+   ========================================= */
+.controls {
+  position: fixed;
+  bottom: 25px;
+  right: 70px;
+  z-index: 9999;
+  padding: 12px;
+  background: rgba(250, 250, 245, 0.98);
+  border: 2px solid #2B6360;
+  backdrop-filter: blur(4px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  display: none;
+  flex-direction: column;
+  width: 250px;
+  max-height: 320px;
+  box-sizing: border-box;
+}
+body.route-mode .controls {
+  display: flex; /* 経路モード時に表示 */
+}
+
+.route-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+.route-panel-header span {
+  font-size: 14px;
+  font-weight: bold;
+  color: #2B6360;
+}
+.route-clear-btn {
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+}
+
+/* タイムラインのスクロールエリア */
+.route-timeline {
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  /* 👇 上下に大きな余白を作ることで、最初と最後の要素も確実にパネル中央を通過できるようにします */
+  padding: 110px 4px; 
+  box-sizing: border-box;
+  scroll-behavior: smooth;
+}
+
+/* 各ルートノードの見た目 */
+.timeline-item {
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  position: relative;
+}
+
+/* ノード同士を繋ぐ縦線 */
+.timeline-item::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 24px;
+  width: 2px;
+  height: 16px;
+  background: #ddd;
+  z-index: 1;
+}
+.timeline-item:last-child::after {
+  display: none; /* 最後の目的地の下には線を引かない */
+}
+
+/* 現在地（アクティブなノード）のスタイル */
+.timeline-item.active {
+  background: #2B6360;
+  color: #ffffff;
+  border-color: #2B6360;
+  transform: scale(1.03);
+  box-shadow: 0 4px 10px rgba(43, 99, 96, 0.25);
+}
+.timeline-item.active::after {
+  background: #2B6360;
+}
+
+/* 📱 スマホ用のサイズ調整 */
+@media (max-width: 800px) {
+ 
+}
+/* =========================================
+   専用の目的地設定確認ポップアップ（中央表示）
+   ========================================= */
+.custom-confirm-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4); /* 背景をほんのり暗く */
+  backdrop-filter: blur(6px);    /* 背景を綺麗にぼかす */
+  z-index: 100000;               /* 最前面に表示 */
+  display: none;                 /* 初期状態は非表示 */
+  justify-content: center;       /* 左右中央 */
+  align-items: center;           /* 上下中央 */
+  box-sizing: border-box;
+}
+
+.confirm-modal-content {
+  background: rgba(250, 250, 245, 0.98); /* アプリ共通のアイボリー */
+  border: 2px solid #2B6360;            /* テーマカラーの深緑 */
+  border-radius: 16px;
+  padding: 24px;
+  width: 290px;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  /* 画面中央にふわっと拡大しながら出てくるアニメーション */
+  animation: confirmPopupAnim 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes confirmPopupAnim {
+  from { transform: scale(0.85); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.confirm-modal-content h3 {
+  margin: 0 0 12px 0;
+  color: #2B6360;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.confirm-modal-content p {
+  margin: 0 0 24px 0;
+  color: #333333;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: bold;
+}
+
+.confirm-modal-buttons {
+  display: flex;
+  flex-direction: column; /* 📱 スマホでも潰れないように縦並びに変更 */
+  gap: 10px;
+  width: 100%;
+}
+
+.confirm-btn {
+  width: 100%;
+  padding: 12px;         /* 押しやすいように少し厚みを持たせる */
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.confirm-btn:active {
+  transform: scale(0.98);
+}
+
+/* 1. 目的地ボタン（既存の深緑の塗りつぶし） */
+.confirm-btn.ok {
+  background: #2B6360;
+  color: #ffffff;
+}
+.confirm-btn.ok:hover {
+  background: #1e4745;
+}
+
+/* 2. 【新規】開始地点ボタン（白背景に深緑の枠線で、目的地と差別化） */
+.confirm-btn.start {
+  background: transparent;
+  color: #2B6360;
+  border: 2px solid #2B6360;
+  padding: 10px; /* ボーダーの厚み分、paddingを微調整 */
+}
+.confirm-btn.start:hover {
+  background: rgba(43, 99, 96, 0.08);
+}
+
+/* 3. キャンセルボタン（落ち着いた灰色） */
+.confirm-btn.cancel {
+  background: #e0e0da;
+  color: #555;
+  border: 1px solid #ccc;
+  margin-top: 4px; /* キャンセルだけ少し離して配置 */
+}
+.confirm-btn.cancel:hover {
+  background: #d2d2cb;
+
+}
+/* ===== 使い方ボタンのスタイル ===== */
+.help-open-btn {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  z-index: 9999; /* 他のUIより前面に配置 */
+  padding: 10px 16px;
+  background-color: #2B6360;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+}
+.help-open-btn:hover {
+  background-color: #1c4240;
+}
+
+/* ===== モーダルウィンドウ全体の背景（暗幕） ===== */
+.help-modal {
+  display: none; /* 初期状態は非表示 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6); /* 背景を暗く */
+  z-index: 10000; /* ボタンよりもさらに前面 */
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(4px);
+
+}
+
+/* ===== ウィンドウ本体のスタイル ===== */
+.help-modal-content {
+  background-color: #ffffff;
+  color: #333333;
+  padding: 30px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  position: relative;
+  animation: fadeInModal 0.3s ease-out;
+  max-width: 450px;         /* 横幅の最大値を固定 */
+  
+  /* 縦幅の固定とスクロール設定をここに追加 */
+  max-height: 75vh;         /* 画面全体の高さの75%を上限にする */
+  overflow-y: auto;
+}
+
+@keyframes fadeInModal {
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 閉じるボタン (×) ===== */
+.help-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #aaa;
+  cursor: pointer;
+}
+.help-close-btn:hover {
+  color: #333;
+}
+
+/* ===== 説明文の装飾 ===== */
+.help-modal-content h2 {
+  margin-top: 0;
+  color: #2B6360;
+  font-size: 20px;
+  border-bottom: 2px solid #eef2f2;
+  padding-bottom: 10px;
+}
+.help-body {
+  margin-top: 20px;
+}
+.help-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.step-num {
+  background-color: #2B6360;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.help-step p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* =========================================
+   初回アクセス時のポップアップ（モーダル）
+   ========================================= */
+.welcome-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.6); /* 背景を暗くする */
+  z-index: 10000; /* 最前面に表示 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+/* ポップアップが立ち上がった状態 */
+.welcome-modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.welcome-modal-content {
+  background-color: #ffffff;
+  width: 90%;
+  max-width: 400px;
+  padding: 24px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  box-sizing: border-box;
+  transform: scale(0.8);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.welcome-modal-overlay.show .welcome-modal-content {
+  transform: scale(1);
+}
+
+.welcome-modal-text {
+  font-size: 15px;
+  color: #333333;
+  line-height: 1.6;
+  margin-bottom: 20px;
+  text-align: left; /* 文章を読みやすく左寄せに */
+}
+
+.welcome-modal-btn {
+  background-color: #2B6360; /* 地図のテーマカラー */
+  color: #ffffff;
+  border: none;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(43, 99, 96, 0.2);
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.welcome-modal-btn:hover {
+  background-color: #1e4644;
+}
+
+.welcome-modal-btn:active {
+  transform: scale(0.95);
+}
+@media screen and (min-width: 801px) {
+  .sp-only {
+    display: none !important;
+  }
+}
+@media (max-width: 800px) {
+.floor-buttons {
+  position: fixed;
+  top: 235px;
+  left: auto;
+  right: 30px;
+  padding: 2px;
+
+}
+.floor-buttons button{
+    padding: 6px 12px;   
+  font-size: 12px;     
+  min-width: 40px;    
+}
+.floorchangebtn {
+  position: fixed;
+  top: 240px;
+  left: auto;
+  right: 2px;
+  padding: 4px;
+  width: 40px; 
+  height: 40px;
+margin: 0 auto;
+
+}
+.floorchangebtn button{
+  padding: 6px 12px;  
+  font-size: 12px;    
+  min-width: 40px;     
+}
+
+
+  body {
+    position: relative;
+    overflow: hidden !important;
+    display: block !important;
+    height: 100vh;
+  }
+  .stair-pin{
+    height: 28px !important;
+    width: 28px !important; 
+  }
+  
+  .toilet-pin{
+    height: 22px !important;
+    width: 22px !important;
+  }
+  
+/* ===== 4. 地図を表示する大きな白いボード ===== */
+.map-container {
+  flex: 1;
+  margin: 4px;
+  background: #FAFAF5;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+  overflow: auto;
+  position: relative;
+  position: relative;
+    height: 100vh;
+}
+
+/* ===== 2. スクロールしても右下についてくるボタンエリア ===== */
+
+  .route-timeline {
+    padding: 70px 2px;
+    gap: 10px;
+    margin-top: 50px;
+    margin-bottom: 50px;
+  }
+  .timeline-item {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .timeline-item::after {
+    height: 20px;
+    left: 28px;
+  }
+
+.controls {
+  position: fixed;
+  z-index: 999;
+  bottom: 8vh;
+    right: 0px;
+    width: 35vw;
+    max-height: 40vh;
+    padding: 10px;
+  background: 	rgba(250,250,245 ,0.6);
+  border: 1px solid #2B6360;
+  backdrop-filter: blur(4px);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+ display: none;
+  gap: 8px;
+}
+/* ===== 3. すべてのボタンの共通デザイン ===== */
+button {
+  padding: 4px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  color: #2B6360; /* テキストは白 */
+  background-color: #FAFAF5; 
+  border: 1px solid #2B6360; 
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.menu-button {
+ display:none;
+}
+.zoom-controls{
+  position: fixed;
+  top: 120px;
+  left:auto;
+  right: 2px;
+  z-index: 9999;
+  padding: 3px;
+  background: 	rgba(250,250,245 ,0.9);
+  border: 1px solid #2B6360;
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  /* ===== ズームボタンエリア（縦並び） ===== */
+
+  display: flex;
+  flex-direction: column; /* ★ ここで縦並びに指定しています */
+  gap: 8px;               /* ボタン同士の隙間（お好みで数値を調整してください） */
+  width: fit-content;     /* コンテナの幅をボタンのサイズにぴったり合わせる */
+ 
+ 
+}
+
+/* ===== ズームボタン自体を少し小さくする ===== */
+.zoom-controls button {
+  padding: 6px 12px;   /* 上下・左右の余白を減らす（元は 10px 18px） */
+  font-size: 12px;     /* 文字サイズを少し小さくする（元は 14px） */
+  min-width: 40px;     /* ＋と－のボタン幅が揃うように最小幅を設定 */
+}
+.bottom-nav {
+  position: fixed;
+  top: 150px;
+  height: fit-content;
+ 
+  bottom: auto;
+  left: 0;
+  width: 20px;    /* コンテナの幅をボタンのサイズにぴったり合わせる */
+  z-index: 9999;
+  display: flex;
+  flex-direction: column; 
+}
+
+/* ドロップダウン全体のコンテナ */
+.nav-item-dropdown {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ナビゲーションの基本アイテムスタイル */
+.bottom-nav .nav-item {
+  display: block;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  padding: 10px 12px;     /* 横パディングを少し広げて押しやすく */
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  background: rgba(26, 61, 59, 0.8);    /* 背景色をマップ全体のダークトーンに合わせる */
+  border-radius: 8px;     /* 角を少し丸める（お好みで） */
+  transition: all 0.3s ease;
+  width: 50px;            /* 幅を固定して綺麗に揃える */
+  margin-bottom: 4px;
+}
+
+/* メインのホームボタン専用（矢印の間隔調整用） */
+.bottom-nav .main-home {
+  position: relative;
+  padding-bottom: 18px; /* 下側に矢印を置くスペースを確保 */
+}
+
+/* 格納されるコンテンツの初期状態（CSS側では標準を0にしておく） */
+.dropdown-content {
+  max-height: 0px;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 矢印の初期スタイル */
+.arrow-icon {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(0deg);
+  font-size: 10px;
+  color: #aaa;
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* 💡 格納されるコンテンツの初期状態（非表示・高さゼロ） */
+.dropdown-content {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 💡 【ホバー対応】ホームにマウスを乗せたら、格納したメニューを展開する */
+.nav-item-dropdown:hover .dropdown-content {
+  max-height: 500px; /* 展開時の最大高さ（十分な数値を指定） */
+  opacity: 1;
+}
+
+/* 💡 【ホバー対応】展開時に矢印を上向きに回転させる */
+.nav-item-dropdown:hover .arrow-icon {
+  transform: translateX(-50%) rotate(180deg);
+  color: #fff;
+}
+
+.floor-indicator {
+  position: fixed;
+  top: 70px;
+  left: -4px;
+  z-index: 9999;
+  padding: 12px 24px;
+  background: 	rgba(43,99,96, 0.9);
+  backdrop-filter: blur(4px);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  
+  /* 文字のデザイン */
+  font-size: 14px;
+  font-weight: bold;
+  color: #ffffff; 
+  text-align: center;
+  
+  /* 下にある地図のクリック操作を邪魔しないようにする設定 */
+  pointer-events: none; 
+}
+
+.map-zoom {
+  transform-origin: top left;
+  padding: 24px;
+  user-select: none;
+  -webkit-user-drag: none;
+
+}
+/* ===== 横画面推奨の案内画面のデザイン ===== */
+.landscape-alert {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(50, 53, 56, 0.98);
+  color: #FAFAF5;
+  z-index: 10000; /* 一番手前に表示 */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.landscape-alert-icon {
+  font-size: 48px;
+  margin-bottom: 20px;
+  animation: rotatePhone 2.5s infinite ease-in-out;
+}
+
+@keyframes rotatePhone {
+  0% { transform: rotate(0deg); }
+  40% { transform: rotate(-90deg); }
+  60% { transform: rotate(-90deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* 全画面解除ボタンを画面左上に浮かせて配置したい場合のCSS例 */
+#exitFullscreenBtn {
+  position: fixed;
+  top: 115px;
+  left: 0px;
+  z-index: 10001; /* アラート画面の次、または地図のUIより手前に配置 */
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.google-search-container.isFullscreen {
+  display: none; /* 全画面モードのときは検索バーを非表示にする */
+}
+
+.side-panel.isFullscreen {
+  display: none; /* 全画面モードのときはサイドパネルも非表示にする */
+}
+/* bodyに .isfullscreen-mode がついている時だけ、自動的にすべてのピンを縮小する */
+
+
+.sp-only {
+    /* ここにスマホのときだけ適用したいデザイン（位置や色など）を書きます。
+      初期状態は非表示にしておき、全画面になったらJavaScriptで表示させたい場合は
+      一旦ここでは「display: none;」にしておきます。
+    */ 
+    position: fixed;
+    top: 115px;
+    left: 0px;
+    z-index: 10001;
+    background-color: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+body {
+    position: relative;
+    overflow: hidden;
+    display: block !important; /* 横並び・縦並びのFlexを解除 */
+    height: 100vh;
+  }
+
+  /* 地図エリアをスマホ画面全体に固定（背面に敷き詰める） */
+  .map-container {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    z-index: 1; /* 背面に配置 */
+  }
+
+  /* キャンバス（地図本体）もコンテナに追従 */
+  #mapCanvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+
+  /* ★【ツマミを中央に固定 & 上部に張り付け】 */
+  .bottom-sheet-thumb-wrapper {
+    display: flex;                  /* 中身を並べる */
+    justify-content: center;        /* 👈 ツマミを完全に水平中央に固定 */
+    position: sticky;               /* 👈 パネルをスクロールしても最上部に残り続ける */
+    top: -16px;                     /* パネル自体のpadding(16px)を相殺して一番上へ */
+    margin: -16px -16px 16px -16px; /* 左右の隙間もなくしてぴったりフィット */
+    padding: 14px 0;
+    background-color: #FAFAF5;     /* パネルと同じ背景色にして一体化 */
+    z-index: 10;
+    border-radius: 20px 20px 0 0;   /* 角丸を綺麗に維持 */
+    cursor: grab;      
+    touch-action: none;             /* 掴めるようなマウスカーソルに */
+  }
+  .bottom-sheet-thumb {
+    width: 60%;
+    height: 5px;
+    background-color: #bbb;
+    border-radius: 3px;
+  }
+
+  /* ボトムシートの設定（PCのスタイルを完全リセットして最前面へ） */
+/* ボトムシートの設定（スマホ用） */
+  .side-panel {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 90% !important;
+    height: 40vh; 
+    margin: 0 !important; 
+    
+    /* ❌ 元のコード: transform: translateY(100%) !important; */
+    /* ⭕ 修正後: パネルの高さ分下げつつ、40pxだけ画面内に残してチラ見せさせる */
+    transform: translateY(calc(100% - 40px)) !important; 
+    
+    transition: transform 0.3s ease, height 0.3s ease;
+    border-radius: 20px 20px 0 0;
+    border-left: none !important;
+    border-top: 1px solid #ddd;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    z-index: 9998 !important; 
+    background: rgba(250, 250, 245, 1) !important;
+  }
+  /* パネルが開いた状態（スマホ用） */
+  .side-panel.open {
+    transform: translateY(0) !important;
+  }
+
+  /* JSでドラッグ中はガクガクしないようアニメーションをオフに */
+  .side-panel.dragging {
+    .side-panel.dragging {
+  transform: translateY(0) !important; /* ⭕ ドラッグ中も位置の下押し下げを解除 */
+  transition: none !important;
+}
+  }
+
+ /* 3. 全画面切り替えボタン自体のスタイル（画面右上に固定） */
+.fullscreen-btn {
+  position: fixed;
+  top: 120px;
+  left: 20px; /* 左上の使い方ボタンと被らないように右上に配置 */
+  z-index: 9999;
+  padding: 10px 16px;
+  background-color: rgba(43, 99, 96, 0.9);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  backdrop-filter: blur(4px);
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+body.fullscreen-mode .fullscreen-btn {
+  background-color: rgba(50, 53, 56, 0.9); /* ONの時はグレー系の色に */
+}
+.help-open-btn {
+  position: fixed;
+  top: 23px;
+  left: 0px;
+  
+}
+}
+
+/* =========================================
+   全画面表示モード用のUI調整
+   ========================================= */
+.clear-btn {
+  position: absolute;
+  right: 10px;       /* 右端からの位置 */
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 20px;    /* ×の大きさ */
+  color: #999;        /* 通常時のマイルドなグレー */
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  z-index: 10;        /* サジェスト等に隠れないように */
+  outline: none;
+  transition: color 0.2s ease;
+}
+
+/* ホバーした時に少し濃くする */
+.clear-btn:hover {
+  color: #333;
+}
+
+
+
+
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+
+<body>
+
+  <div class="google-search-container">
+  <div class="google-search-icon">
+    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"></circle>
+      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+
+  </div>
+  
+  <input type="text" id="goalInputTop" placeholder="目的地を検索..." autocomplete="off">
+  
+  <div id="goalListTop" class="google-suggestion-list"></div>
+</div>
+
+<div id="landscapeAlert" class="landscape-alert" style="display: none;">
+  <div class="landscape-alert-icon"><i class="fa-solid fa-mobile"></i></div>
+  <div class="landscape-alert-title">横画面での閲覧を推奨しています</div>
+  <div class="landscape-alert-text">
+    校内地図を広く見やすく表示するため、<br>
+    スマホを横向きに回転させてください。
+  </div>
+  <button onclick="closeLandscapeAlert()" style="margin-top: 20px; padding: 8px 16px; font-size: 12px;">閉じる</button>
+</div>
+
+<div id="floorIndicator" class="floor-indicator">1F</div>
+
+<img src="search.png" id="menuButton" class="menu-button">
+
+<div class="side-panel" id="sidePanel">
+  <div class="bottom-sheet-thumb-wrapper">
+    <div class="bottom-sheet-thumb"></div>
+  </div>
+  <h3>経路設定</h3>
+<div class="search-box">
+  <label>開始地点</label>
+  <input id="startInput" placeholder="場所を入力">
+  <div id="startSuggestions" class="suggestions"></div>
+</div>
+
+<div class="search-box">
+  <label>目的地</label>
+  <input id="goalInput" placeholder="場所を入力">
+  <div id="goalSuggestions" class="suggestions"></div>
+</div>
+ <div class="mode-buttons">
+  <button onclick="setModeStart()">開始地点設定</button>
+  <button onclick="setModeGoal()">目的地設定</button>
+  <button id="cancelModeBtn" onclick="setModeNone()" style="display:none;">やめる</button>
+</div>
+
+  <div id="nodeIndex"></div>
+
+  <div>
+  <label>並び替え</label>
+  <button onclick="setSort('name')">名前順</button>
+  <button onclick="setSort('id')">ID順</button>
+</div>
+<button id="scrollTopBtn" class="scroll-top-btn" onclick="scrollToPanelTop()" title="一番上に戻る">
+  <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="19" x2="12" y2="5"></line>
+    <polyline points="5 12 12 5 19 12"></polyline>
+  </svg>
+</button>
+</div>
+<div class="floorchangebtn">
+ <!-- 修正：botton から button に変更 -->
+ <button onclick="flooropen()">階</button> 
+</div>
+
+<div class="floor-buttons" style="display: none;">
+  <button  id = floor4 onclick="changeFloor(4)">4F</button>
+  <button  id = floor3 onclick="changeFloor(3)">3F</button>
+  <button  id = floor2 onclick="changeFloor(2)">2F</button>
+  <button  id = floor1 onclick="changeFloor(1)">1F</button>
+  <button  id = floor0 onclick="changeFloor(0)">0F</button>
+</div>
+
+<!-- 操作ボタンエリア -->
+<div class="controls">
+  <div class="route-panel-header">
+    <span>経路</span>
+    <button onclick="clearRoute()" class="route-clear-btn">終了</button>
+  </div>
+  <div class="route-timeline" id="routeTimeline"></div>
+</div>
+
+<div class="zoom-controls">
+  <button onclick="zoomIn()">＋</button>
+  <button onclick="zoomOut()">－</button>
+  <button onclick="resetZoom()">🔄</button>
+</div>
+
+<!-- メインの地図エリア -->
+<div class="map-container">
+ 
+  <!-- ズーム対象 -->
+  <div class="map-zoom">
+    <img id="mapImage" src="floor1.svg" width="800">
+    <canvas id="routeCanvas"></canvas>
+  </div>
+
+  <!-- UI（ズームしない） -->
+  <div id="ui-layer">
+    <div class="pin you" id="you"></div>
+    <div class="pin goal" id="goal"></div>
+    <div id="stairPinsArea"></div>
+  </div>
+  <!-- 💡 階数選択用のポップアップメニュー -->
+  <div id="stairMenu" class="stair-menu"></div>
+</div>
+
+<button id="toggleFullscreenBtn" class="sp-only" onclick="toggleFullscreenMode()">全画面表示</button>
+<button id="exitFullscreenBtn" class="sp-only" onclick="exitFullscreenMode()" style="display: none;">
+  全画面を解除
+</button>
+<button id="helpOpenBtn" class="help-open-btn">
+  <span class="help-icon">❓</span> 使い方
+</button>
+
+<div id="helpModal" class="help-modal">
+  <div class="help-modal-content">
+    <span id="helpCloseBtn" class="help-close-btn">&times;</span>
+    
+    <h2>🗺️ 経路案内の使い方</h2>
+    <div class="help-body">
+      <div class="help-step">
+        <span class="step-num">1</span>
+        <p><strong>出発地と目的地を選ぶ</strong><br>一覧から選択したり、開始地点（目的地）設定ボタン、検索などが利用できます。</p>
+      </div>
+      <div class="help-step">
+        <span class="step-num">2</span>
+        <p><strong>ルートを表示する</strong><br>場所を選ぶと、現在地から目的地までの最適な経路が地図上に線で描画されます。</p>
+      </div>
+      <div class="help-step">
+        <span class="step-num">3</span>
+        <p><strong>移動する</strong><br>右下のパネルをスクロールすると、経路を進めたり戻したりできます。</p>
+      </div>
+
+
+<div class="help-section-title">➕➖ズーム機能</div> 
+<div class="help-step"> <span class="step-num">R</span>
+  <p><strong>リセット</strong><br>🔄を押すと、ズームがリセットされます。</p>
+</div>
+<div class="help-section-title">階変更</div> 
+<div class="help-step"> <span class="step-num">🛗</span>
+  <p><strong>階変更ボタン</strong><br>階数選択用のボタンを押すと、指定された階に移動できます。</p>
+</div>
+  <div class="help-step"> <span class="step-num">🪜</span>
+  <p><strong>階段で移動</strong><br>階段を押すと、階段を使ったルートが分かります。</p>
+</div>
+<div class="help-section-title">一覧</div>
+  <div class="help-step"> <span class="step-num">?</span>
+  <p><strong>検索</strong><br>目的地と開始地点を検索して、それぞれ別々に設定できます。目的地は地図の上にある検索バーと同期されます。</p>
+  </div>
+   <div class="help-step"> <span class="step-num">📍</span>
+  <p><strong>開始地点、目的地設定モード</strong><br>ボタンを押すと、設定モードに移行します。設定モード中に地図上の円をクリックして位置を設定できます。</p>
+   </div>
+</div>
+
+<h2>使い方‐スマートフォン―</h2>
+<div class="help-section-title">全画面表示</div> 
+<div class="help-step"> <span class="step-num">!</span>
+  <p><strong>全画面表示ボタン</strong><br>左上の全画面表示ボタンを押すと、全画面モードに移行し、地図を大きく見ることができます。</p>
+</div>
+<div class="help-section-title">一覧</div>
+<div class="help-step"> <span class="step-num">≡</span>
+  <p><strong>ボトムシート</strong><br>下のシートを展開すると、一覧を見ることができます</p>
+</div>
+<h2>使い方‐PC―</h2>
+
+<div class="help-section-title">一覧表示</div>
+<div class="help-step"> <span class="step-num">≡</span>
+  <p><strong>サイドパネル</strong><br>右上の虫眼鏡ボタンをクリックすると、サイドパネルが開きます。</p>
+  </div>
+    </div>
+  </div>
+</div>
+
+<div id="destinationConfirmModal" class="custom-confirm-modal">
+  <div class="confirm-modal-content">
+    <h3 id="confirmModalTitle">地点の設定</h3>
+    <p id="confirmModalMessage">「○○」をどちらに設定しますか？</p>
+    <div class="confirm-modal-buttons">
+      <button id="confirmOkBtn" class="confirm-btn ok">目的地に設定する</button>
+      <button id="confirmStartBtn" class="confirm-btn start">開始地点に設定する</button>
+      <button id="confirmCancelBtn" class="confirm-btn cancel">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+
+<nav class="bottom-nav">
+  <div class="nav-item-dropdown">
+    <a href="../index.html" class="nav-item main-home">
+      <i class="fa-solid fa-house"></i><br>
+      ホーム
+      <i class="fa-solid fa-chevron-down arrow-icon"></i>
+    </a>
+
+    <div class="dropdown-content">
+      <a href="../koutyou-aisatu.html" class="nav-item">
+        <i class="fa-solid fa-comments"></i><br>
+        挨拶
+      </a>
+
+      <a href="../project.html" class="nav-item">
+        <i class="fa-solid fa-list"></i><br>
+        企画
+      </a>
+
+      <a href="../event.html" class="nav-item">
+        <i class="fa-solid fa-calendar"></i><br>
+        イベント
+      </a>
+
+      <a href="schoolmap.html" class="nav-item">
+        <i class="fa-solid fa-map"></i><br>
+        地図
+      </a>
+
+      <a href="../other.html" class="nav-item">
+        <i class="fa-solid fa-circle-info"></i><br>
+        その他
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+const mediaQuery = window.matchMedia('(max-width: 800px)');
+/* ===== 状態 ===== */
+let floor = 1;
+let destination = null;
+let activeHighlightStairId = null;
+ // 移動先でハイライトする階段のID
+let mode = "none"; // "none" | "setStart" | "setGoal"
+//ズームシステム//
+let scale = 1;
+const MIN_SCALE = 0.35;
+const MAX_SCALE = 6;
+
+/* =========================================
+   マルチタッチによるピンチズーム（標準ズームを禁止して連動）
+   ========================================= */
+let startDistance = 0; 
+let startScale = 1;    
+
+const mapContainer = document.querySelector(".map-container");
+
+mapContainer.addEventListener("touchstart", (e) => {
+  if (e.touches.length === 2) {
+    // 地図内でのマルチタッチイベントがページ全体に伝わるのを防ぐ
+    e.stopPropagation(); 
+    
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    startDistance = Math.sqrt(dx * dx + dy * dy);
+    startScale = scale;
+  }
+}, { passive: false }); // passiveをfalseにして制御可能にする
+
+mapContainer.addEventListener("touchmove", (e) => {
+  if (e.touches.length === 2 && startDistance > 0) {
+    // ★ ブラウザ全体のサイトズーム（デフォルト挙動）を完全に禁止する
+    e.preventDefault(); 
+    e.stopPropagation(); 
+
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const currentDistance = Math.sqrt(dx * dx + dy * dy);
+    
+    const distanceRatio = currentDistance / startDistance;
+    const targetScale = startScale * distanceRatio;
+    
+    setZoom(targetScale);
+  }
+}, { passive: false }); // ★ 必ず false に変更してください
+
+mapContainer.addEventListener("touchend", (e) => {
+  if (e.touches.length < 2) {
+    startDistance = 0;
+  }
+});
+
+// 地図コンテナ以外の場所でページ全体がピンチズームされるのを完全に防ぐ
+
+function setZoom(target) {
+  scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, target));
+
+  document.querySelector(".map-zoom").style.transform =
+    `scale(${scale})`;
+ 
+  renderPins();
+  updateYou();
+   updateDestination();
+   renderSelectablePins();
+}
+
+function zoomIn() {
+  setZoom(scale + 0.2);
+}
+
+function zoomOut() {
+  setZoom(scale - 0.2);
+}
+
+function resetZoom() {
+  setZoom(1);
+}
+
+
+/* ===================================================
+   1. ノード（座標）データ
+   各フロアごとに最大20個のノードを登録できます。
+   【書き方】 "ノードID": { name: "表示名", x: 0, y: 0 }
+=================================================== */
+const graphNodes = {
+  // --- 1階のノード (20個枠) ---
+  1: {
+"f1_node01": { type: "entrance", name: "生徒玄関(1F)", kana: "せいとげんかん", x: 526, y: 381 },
+"f1_node02": { name: "東南棟入口(1F)", kana: "とうなんとういりぐち", x: 552, y: 357 },
+"f1_node03": { name: "東階段前(1F)", kana: "ひがしかいだんまえ", x: 678, y: 358 },
+"f1_node04": { type:"room", name: "カウンセリングルーム(1F)", kana: "かうんせりんぐるーむ", x: 708, y: 384 },
+"f1_node05": { name: "東棟通路(1F)", kana: "ひがしとうつうろ", x: 709, y: 416 },
+"f1_node06": { name: "教育支援室(1F)", kana: "きょういくしえんしつ", x: 694, y: 416 },
+"f1_node07": { type:"room", name: "保健室(1F)", kana: "ほけんしつ", x: 744, y: 416 },
+"f1_node08": { name: "保健室奥(1F)", kana: "ほけんしつおく", x: 795, y: 416 },
+"f1_node09": { name: "佐藤一斎石像前(1F)", kana: "さとういっさいせきぞうまえ", x: 458, y: 328 },
+"f1_node10": { name: "クリーンルーム前(1F)", kana: "くりーんるーむまえ", x: 425, y: 297 },
+"f1_node11": { name: "コモンホール西階段前(1F)", kana: "こもんほーるにしかいだんまえ", x: 290, y: 308 },
+"f1_node12": { name: "来客者用トイレ前", kana: "らいきゃくしゃようといれまえ", x:233, y: 306 },
+"f1_node13": { type: "room", name: "会議室(1F)", kana: "かいぎしつ", x: 149, y: 306 },
+"f1_node14": { name: "放送室前(1F)", kana: "ほうそうしつまえ", x: 87, y: 306 },
+"f1_node15": { type: "room", name: "事務室(1F)", kana: "じむしつ", x: 87, y: 347 },
+"f1_node16": { type: "room", name: "ライブラリー(1F)", kana: "らいぶらりー", x: 322, y: 341 },
+"f1_node17": { type:"room", name: "コモンホール中央(1F)", kana: "こもんほーるちゅうおう", x: 321, y: 296 },
+"f1_node18": { type: "facility", subtype: "toilet", name: "男子トイレ(東南)(1F)", kana: "だんしといれとうなん", x: 796, y: 416 },
+"f1_node19": { type: "facility", subtype: "toilet", name: "来客者用男子トイレ(1F)", kana: "らいきゃくしゃようだんしといれ", x:204, y:308 },
+"f1_node20": { type: "facility", subtype: "toilet", name: "来客者用女子トイレ(1F)", kana: "らいきゃくしゃようじょしといれ", x: 228, y: 350 },
+"f1_stair_staffroom": { type: "stair", name: "玄関正面階段(1F)", kana: "げんかんしょうめんかいだん", x: 517, y: 332 },
+"f1_stair_east": { type: "stair", name: "東棟階段(1F)", kana: "ひがしとうかいだん", x: 706, y: 349 },
+"f1_stair_west": { type: "stair", name: "校長室前階段(1F)", kana: "こうちょうしつまえかいだん", x: 29, y: 303 },
+"f1_stair_common-east": { type: "stair", name: "コモンホール東階段(1F)", kana: "こもんほーるひがしかいだん", x: 426, y: 255 },
+"f1_stair_common-west": { type: "stair", name: "コモンホール西階段(1F)", kana: "こもんほーるにしかいだん", x: 295, y: 283 },
+"f1_stair_office": { type: "stair", name: "南階段(1F)", kana: "みなみかいだん", x: 230, y: 401 },
+"f1_stair_basement": { type: "stair", name: "地下行き階段(1F)", kana: "ちかいきかいだん", x: 609, y: 343 },
+    "toilet-pin.male1":{ type:"toilet-pin",   gender: "male",name: "来客者用男子トイレ" , x: 204, y:329},
+    "toilet-pin.male2":{ type:"toilet-pin",   gender: "male",name: "東南棟男子トイレ" , x: 791, y:390},
+    "toilet-pin.female1":{ type:"toilet-pin",   gender: "female",name: "来客者用女子トイレ" , x: 204, y:356},
+    "toilet-pin.female2":{ type:"toilet-pin",   gender: "female",name: "東南棟女子トイレ" , x: 812, y:390},
+  
+    
+    
+    
+  },
+
+  // --- 2階のノード (20個枠) ---
+  2: {
+"f2_node01": { type: "room", name: "教員室東入口(2F)", kana: "きょういんしつひがしいりぐち", x: 473, y: 413 },
+"f2_node02": { type: "room", name: "教員室西入口(2F)", kana: "きょういんしつにしいりぐち", x: 230, y: 413 },
+"f2_node03": { name: "準備室前(2F)", kana: "じゅんびしつまえ", x: 230, y: 378 },
+"f2_node04": { name: "コモンホール東階段前(2F)", kana: "こもんほーるひがしかいだんまえ", x: 473, y: 370 },
+"f2_node06": { name: "東棟男子トイレ横(2F)", kana: "ひがしとうだんしといれよこ", x: 473, y: 339 },
+"f2_node07": { type: "facility",subtype: "toilet", name: "東棟男子トイレ(2F)", kana: "ひがしとうだんしといれ", x: 494, y: 339 },
+"f2_node08": { name: "東棟前廊下(2F)", kana: "ひがしとうまえろうか", x: 473, y: 313 },
+"f2_node09": { name: "東棟男子トイレ上(2F)", kana: "ひがしとうだんしといれうえ", x: 494, y: 313 },
+"f2_node10": { type: "facility",subtype: "toilet", name: "東棟女子トイレ(2F)", kana: "ひがしとうじょしといれ", x: 550, y: 313 },
+"f2_node11": { type:"room", name: "被服室(2F)", kana: "ひふくしつ", x: 614, y: 313 },
+"f2_node12": { type:"room", name: "東11(2F)", kana: "ひがしじゅういち", x: 688, y: 313 },
+"f2_node13": { name: "東北棟前(2F)", kana: "とうほくとうまえ", x: 474, y: 212 },
+"f2_node14": { name: "家庭準備室前(2F)", kana: "かていじゅんびしつまえ", x: 516, y: 212 },
+"f2_node15": { name: "東北棟廊下(2F)", kana: "とうほくとうろうか", x: 516, y: 187 },
+"f2_node16": { type:"room", name: "6-1(2F)", kana: "ろくのいち", x: 554, y: 187 },
+"f2_node17": { type:"room", name: "6-2(2F)", kana: "ろくのに", x: 615, y: 187 },
+"f2_node18": { type:"room", name: "調理室(2F)", kana: "ちょうりしつ", x: 437, y: 209 },
+"f2_node19": { type:"room", name: "進路指導室(2F)", kana: "しんろしどうしつ", x: 424, y: 209 },
+"f2_node20": { type:"room", name: "地学・物理実験室(2F)", kana: "ちがくぶつりじっけんしつ", x: 356, y: 209 },
+"f2_node21": { type:"room", name: "生物実験室(2F)", kana: "せいぶつじっけんしつ", x: 338, y: 209 },
+"f2_node22": { type:"room", name: "化学実験室(2F)", kana: "かがくじっけんしつ", x: 297, y: 209 },
+"f2_node23": { type:"room", name: "北11(2F)", kana: "きたじゅういち", x: 244, y: 209 },
+"f2_node24": { type:"room", name: "理科準備室(2F)", kana: "りかじゅんびしつ", x: 239, y: 209 },
+"f2_node25": { name: "北棟廊下西(2F)", kana: "きたとうろうかにし", x: 199, y: 210 },
+"f2_node26": { type: "facility",subtype: "toilet", name: "女子トイレ西(2F)", kana: "じょしといれにし", x: 201, y: 376 },
+"f2_node27": { type:"room", name: "生徒指導室(2F)", kana: "せいとしどうしつ", x: 167, y: 376 },
+"f2_node28": { type:"room", name: "教科準備室(2F)", kana: "きょうかじゅんびしつ", x: 168, y: 376 },
+"f2_node29": { type:"room", name: "1-1(2F)", kana: "いちのいち", x: 116, y: 376 },
+"f2_node30": { type:"room", name: "1-2(2F)", kana: "いちのに", x: 114, y: 376 },
+"f2_node31": { type:"room", name: "2-1(2F)", kana: "にのいち", x: 61, y: 376 },
+"f2_node32": { type:"room", name: "2-2(2F)", kana: "にのに", x: 57, y: 376 },
+"f2_node33": { name: "体育館行き通路(2F)", kana: "たいいくかんいきつうろ", x: 166, y: 204 },
+"f2_node34": { name: "体育館横十字路(2F)", kana: "たいいくかんよこじゅうじろ", x: 166, y: 155 },
+"f2_node35": { name: "ゴミステーション(2F)", kana: "ごみすてーしょん", x: 227, y: 155 },
+"f2_node36": { type:"gym", name: "第一体育館", kana: "だいいちたいいくかん", x: 134, y: 156 },
+"f2_node37": { name: "第二体育館行き通路(2F)", kana: "だいにたいいくかんいきつうろ", x: 165, y: 133 },
+"f2_node38": { name: "第二体育館行き通路2(2F)", kana: "だいにたいいくかんいきつうろに", x: 145, y: 133 },
+"f2_node39": { type: "facility",subtype: "toilet", name: "体育館横トイレ", kana: "たいいくかんよこといれ", x: 145, y: 114 },
+"f2_node40": { name: "第二体育館行き通路4(2F)", kana: "だいにたいいくかんいきつうろよん", x: 79, y: 113 },
+"f2_node41": { type:"gym", name: "第二体育館", kana: "だいにたいいくかん", x: 79, y: 96 },
+"f2_node42": { name: "教員室前(2F)", kana: "きょういんしつまえ", x: 472, y:398 },
+"f2_node43": { name: "玄関正面階段前(2F)", kana: "げんかんしょうめんかいだんまえ", x: 504, y:398 },
+"f2_node44": { name: "東南棟行き廊下(2F)", kana: "とうなんとういきろうか", x: 549, y:398 },
+"f2_node45": { name: "東南棟行き廊下(2F)", kana: "とうなんとういきろうか", x: 549, y: 371},
+"f2_node46": { name: "東南棟行き廊下(2F)", kana: "とうなんとういきろうか", x: 680, y: 371},
+"f2_node48": { name: "東南棟廊下(2F)", kana: "とうなんとうろうか", x: 680, y:403 },
+"f2_node49": { type:"room", name: "第二教員室(2F)", kana: "だいにきょういんしつ", x: 706, y:415 },
+"f2_node50": { name: "東南東廊下(2F)", kana: "とうなんひがしろうか", x: 706, y:430 },
+"f2_node51": { type:"room", name: "4-6(2F)", kana: "よんのろく", x: 691, y:430 },
+"f2_node52": { type:"room", name: "東南32(2F)", kana: "とうなんとうさんじゅうに", x: 741, y:430 },
+"f2_node53": { type:"room", name: "東南31(2F)", kana: "とうなんとうさんじゅういち", x: 793, y:430 },
+"f2_node54": { type: "facility",subtype: "toilet", name: "東南棟トイレ(2F)", kana: "とうなんとうといれ", x: 802, y:428 },
+"f2_node55": { type: "facility",subtype: "toilet", name: "第一体育館内トイレ", kana: "だいいちたいいくかんないといれ", x:124,y:151 },
+"f2_node56": { name:"コモンホール西階段前(2F)", kana: "こもんほーるにしかいだんまえ", x:254, y: 372 },
+
+"f2_stair_staffroom": { type: "stair", name: "玄関正面階段(2F)", kana: "げんかんしょうめんかいだん", x: 504, y: 380 },
+"f2_stair_east": { type: "stair", name: "東棟階段(2F)", kana: "ひがしとうかいだん", x: 706, y: 389 },
+"f2_stair_west": { type: "stair", name: "西階段(2F)", kana: "にしかいだん", x: 27, y: 377 },
+"f2_stair_common-east": { type: "stair", name: "コモンホール東階段(2F)", kana: "こもんほーるひがしかいだん", x: 453, y: 358 },
+"f2_stair_common-west": { type: "stair", name: "コモンホール西階段(2F)", kana: "こもんほーるにしかいだん", x: 268, y: 358 },
+"f2_stair_office": { type: "stair", name: "南階段(2F)", kana: "みなみかいだん", x: 227, y: 446 },
+"f2_stair_northwest": { type: "stair", name: "北棟前西階段(2F)", kana: "きたとうまえにしかいだん", x: 204, y: 257 },
+"f2_stair_northeast": { type: "stair", name: "北棟前東階段(2F)", kana: "きたとうまえひがしかいだん", x: 475, y: 257 },
+"f2_stair_toilet": { type: "stair", name: "東棟階段(2F)", kana: "ひがしとうかいだん", x: 519, y: 331 },
+    "toilet-pin.male3":{ type:"toilet-pin",   gender: "male",name: "男子トイレ" , x: 499, y:351},
+    "toilet-pin.male4":{ type:"toilet-pin",   gender: "male",name: "男子トイレ" , x: 791, y:415},
+    "toilet-pin.male5":{ type:"toilet-pin",   gender: "female",name: "女子トイレ" , x: 200, y:400},
+    "toilet-pin.female3":{ type:"toilet-pin",   gender: "female",name: "女子トイレ" , x: 546, y:337},
+    "toilet-pin.female4":{ type:"toilet-pin",   gender: "female",name: "女子トイレ" , x: 812, y:415},
+    "toilet-pin.all1":{ type: "toilet-pin" , gender: "all" , name: "第一体育館トイレ", x:124,y:144},
+    "toilet-pin.all2":{ type: "toilet-pin" , gender: "all" , name: "体育館横通路トイレ", x:159,y:114}
+  },
+
+  3: {
+  "f3_node01": { name: "南棟東廊下(3F)", kana: "みなみとうひがしろうか", x: 473, y: 413 },
+"f3_node02": { type:"room", name: "4-5(3F)", kana: "よんのご", x: 443, y: 411 },
+"f3_node03": { type:"room", name: "RIO(3F)", kana: "りお", x: 431, y: 411 },
+"f3_node04": { type:"room", name: "南大(3F)", kana: "みなみだい", x: 384, y: 411 },
+"f3_node05": { type:"room", name: "4-4(3F)", kana: "よんのよん", x: 374, y: 411 },
+"f3_node06": { type:"room", name: "3-1(3F)", kana: "さんのいち", x: 315, y: 411 },
+"f3_node07": { type:"room", name: "3-2(3F)", kana: "さんのに", x: 316, y: 411 },
+"f3_node08": { type:"room", name: "生徒会室(3F)", kana: "せいとかいしつ", x: 264, y: 411 },
+"f3_node09": { type:"room", name: "麗澤+(3F)", kana: "れいたくぷらす", x: 265, y: 411 },
+"f3_node10": { name: "麗澤プラス横(3F)", kana: "れいたくぷらすよこ", x: 230, y: 378 },
+"f3_node11": { name: "東棟男子トイレ横(3F)", kana: "ひがしとうだんしといれよこ", x: 473, y: 339 },
+"f3_node12": { type: "facility",subtype: "toilet", name: "東棟男子トイレ(3F)", kana: "ひがしとうだんしといれ", x: 494, y: 339 },
+"f3_node13": { name: "東棟前廊下(3F)", kana: "ひがしとうまえろうか", x: 473, y: 313 },
+"f3_node14": { name: "東棟男子トイレ上(3F)", kana: "ひがしとうだんしといれうえ", x: 494, y: 313 },
+"f3_node15": { type: "facility",subtype: "toilet", name: "東棟女子トイレ(3F)", kana: "ひがしとうじょしといれ", x: 550, y: 313 },
+"f3_node16": { type:"room", name: "書道教室(3F)", kana: "しょどうきょうしつ", x: 594, y: 313 },
+"f3_node17": { type:"room", name: "第二講師室(3F)", kana: "だいにこうししつ", x: 652, y: 313 },
+"f3_node18": { type:"room", name: "美術室(3F)", kana: "びじゅつしつ", x: 664, y: 313 },
+"f3_node19": { name: "東北棟前(3F)", kana: "とうほくとうまえ", x: 474, y: 212 },
+"f3_node20": { name: "面談室前(3F)", kana: "めんだんしつまえ", x: 516, y: 212 },
+"f3_node21": { name: "東北棟廊下(3F)", kana: "とうほくとうろうか", x: 516, y: 187 },
+"f3_node22": { type:"room", name: "6-3(3F)", kana: "ろくのさん", x: 554, y: 187 },
+"f3_node23": { type:"room", name: "6-4(3F)", kana: "ろくのよん", x: 615, y: 187 },
+"f3_node24": { name: "楽器庫(3F)", kana: "がっきこ", x: 432, y: 209 },
+"f3_node25": { type:"room", name: "音楽室(3F)", kana: "おんがくしつ", x: 417, y: 209 },
+"f3_node26": { type:"room", name: "5-4(3F)", kana: "ごのよん", x: 315, y: 209 },
+"f3_node27": { type:"room", name: "5-2(3F)", kana: "ごのに", x: 303, y: 209 },
+"f3_node28": { type:"room", name: "5-3(3F)", kana: "ごのさん", x: 245, y: 209 },
+"f3_node29": { type:"room", name: "5-1(3F)", kana: "ごのいち", x: 244, y: 209 },
+"f3_node30": { name: "北棟西廊下(3F)", kana: "きたとうにしろうか", x: 199, y: 210 },
+"f3_node31": { type: "facility",subtype: "toilet", name: "西男子トイレ(3F)", kana: "にしだんしといれ", x: 201, y: 376 },
+"f3_node32": { type:"room", name: "広報(3F)", kana: "こうほう", x: 168, y: 376 },
+"f3_node33": { type:"room", name: "西大(3F)", kana: "にしだい", x: 136, y: 376 },
+"f3_node34": { type:"room", name: "4-2(3F)", kana: "よんのに", x: 116, y: 376 },
+"f3_node35": { type:"room", name: "4-1(3F)", kana: "よんのいち", x: 61, y: 376 },
+"f3_node36": { type:"room", name: "4-3(3F)", kana: "よんのさん", x: 60, y: 376 },
+"f3_node37": { name: "南棟西廊下(3F)", kana: "みなみとうにしろうか", x: 229, y:411 },
+"f3_node38": { type:"room", name:"北大(3F)", kana: "きただい", x: 376, y:209 },
+"f3_node39": { name: "東南棟廊下(3F)", kana: "とうなんとうろうか", x: 681, y :389 },
+"f3_node40": { name: "東南東廊下(3F)", kana: "とうなんひがしろうか", x: 681, y :411 },
+"f3_node41": { name: "小学習室(3F)", kana: "しょうがくしゅうしつ", x: 701, y :411 },
+"f3_node42": { type:"room", name: "自学教室(3F)", kana: "じがくきょうしつ", x: 681, y :432 },
+"f3_node43": { type: "facility",subtype: "toilet", name: "東南棟トイレ(3F)", kana: "とうなんとうといれ", x: 802, y :430 },
+
+"f3_stair_staffroom": { type: "stair", name: "玄関正面階段(3F)", kana: "げんかんしょうめんかいだん", x: 504, y: 380 },
+"f3_stair_east": { type: "stair", name: "東棟階段(3F)", kana: "ひがしとうかいだん", x: 706, y: 389 },
+"f3_stair_west": { type: "stair", name: "西階段(3F)", kana: "にしかいだん", x: 27, y: 377 },
+"f3_stair_office": { type: "stair", name: "南階段(3F)", kana: "みなみかいだん", x: 227, y: 446 },
+"f3_stair_northwest": { type: "stair", name: "北棟前西階段(3F)", kana: "きたとうまえにしかいだん", x: 204, y: 257 },
+"f3_stair_northeast": { type: "stair", name: "北棟前東階段(3F)", kana: "きたとうまえひがしかいだん", x: 480, y: 257 },
+"f3_stair_toilet": { type: "stair", name: "東棟階段(3F)", kana: "ひがしとうかいだん", x: 519, y: 331 },
+    "toilet-pin.male6":{ type:"toilet-pin",   gender: "male",name: "男子トイレ" , x: 499, y:351},
+    "toilet-pin.male7":{ type:"toilet-pin",   gender: "male",name: "男子トイレ" , x: 791, y:415},
+    "toilet-pin.female5":{ type:"toilet-pin",   gender: "male",name: "男子トイレ" , x: 200, y:400},
+    "toilet-pin.female6":{ type:"toilet-pin",   gender: "female",name: "女子トイレ" , x: 546, y:337},
+    "toilet-pin.female7":{ type:"toilet-pin",   gender: "female",name: "女子トイレ" , x: 812, y:415},
+  
+  },
+4:{
+  "f4_node01": { name: "東棟廊下(4F)", kana: "ひがしとうろうか", x: 492, y :330 },
+  "f4_node02": { name: "東棟廊下(4F)", kana: "ひがしとうろうか", x: 492, y :312 },
+  "f4_node03": { type:"room", name: "合同教室(4F)", kana: "ごうどうきょうしつ", x: 591, y :312 },
+  "f4_stair_toilet": { type: "stair", name: "トイレ前階段(4F)", kana: "といれまえかいだん", x: 519, y: 331 },
+},
+
+0:{
+  "f0_node01": { name: "地下廊下(0F)", kana: "ちかろうか", x: 679, y :405 },
+  "f0_node02": { name: "地下廊下(0F)", kana: "ちかろうか", x: 708, y :416 },
+  "f0_node03": { type:"room", name: "作法室", kana: "さどうしつ", x: 712, y :432 },
+  "f0_node04": { type: "facility",subtype: "toilet", name: "東南棟トイレ(0F)", kana: "とうなんとうといれ", x: 801, y :430 },
+  "f0_stair_east": { type: "stair", name: "東棟階段(0F)", kana: "ひがしとうかいだん", x: 706, y: 389 },
+  "f0_stair_basement": { type: "stair", name: "地下行き階段(0F)", kana: "ちかいきかいだん", x: 662, y: 366 },
+  "toilet-pin.male9": { type:"toilet-pin", gender: "male", name: "男子トイレ", kana: "だんしといれ", x: 791, y:415 },
+  "toilet-pin.female9": { type:"toilet-pin", gender: "female", name: "女子トイレ", kana: "じょしといれ", x: 812, y:415 },
+}
+}
+/* ===================================================
+   2. エッジ（線のつながり）データ
+   通路がつながっているノード同士を登録します。
+   【書き方】 "出発元ID": [{ to: "移動先ID" }, { to: "移動先ID" }]
+=================================================== */
+const rawEdges = {
+  // --- 1階のつながり ---
+
+  "f1_node01": [ { to: "f1_node02" }, { to: "f1_stair_staffroom" } ],
+  "f1_stair_staffroom": [ { to: "f1_node02" }, { to: "f2_stair_staffroom" }, { to: "f3_stair_staffroom" } ],
+  "f1_node02": [ { to: "f1_node03" } ],
+  "f1_node03": [ { to: "f1_node04" }, { to: "f1_stair_east" } ],
+  "f1_stair_west": [ { to: "f2_stair_west" }, { to: "f3_stair_west" }, { to: "f1_node03" }, { to: "f1_node04" } ],
+  "f1_node04": [ { to: "f1_node05" }, { to: "f1_node06" } ],
+  "f1_node05": [ { to: "f1_node06" }, { to: "f1_node07" }, { to: "f1_node08" } ],
+  "f1_node06": [ { to: "f1_node07" }, { to: "f1_node08" } ],
+  "f1_node09": [ { to: "f1_node01" }, { to: "f1_node10" } ],
+  "f1_node10": [ { to: "f1_node11" }, { to: "f1_stair_common-east" }, { to: "f1_stair_common-west" } ,{to: "f1_node16"},{to:"f1_node17"}],
+  "f1_stair_common-east": [ { to: "f2_stair_common-east" } ],
+  "f1_stair_common-west": [ { to: "f2_stair_common-west" } ],
+  "f1_node11": [ { to: "f1_node12" } ,{ to: "f1_node16"}, { to: "f1_node17"}],
+  "f1_node12": [ { to: "f1_node13" }, { to: "f1_stair_office" } ],
+  "f1_stair_office": [ { to: "f2_stair_office" }, { to: "f3_stair_office" } ],
+  "f1_node13": [ { to: "f1_node14" } ],
+  "f1_node14": [ { to: "f1_node15" }, { to: "f1_stair_east" } ],
+  "f1_node15": [ {to: "f1_stair_east"} ],
+  "f1_node16":[ {to: "f1_node17"} ],
+  "f1_node17":[],
+  "f1_node18":[ {to:"f1_node08"} ],
+  "f1_node19":[ {to:"f1_node13"} ],
+  "f1_stair_east": [ { to: "f2_stair_east" }, { to: "f3_stair_east" },{ to: "f0_stair_east"} ],
+
+  // --- 2階 ---
+  "f2_node01": [ { to: "f2_node02" }, { to: "f2_node42" } ],
+  "f2_node02": [ { to: "f2_node03" }, { to: "f2_stair_office" } ],
+
+  "f2_node03": [ { to: "f2_node26" } ,{ to: "f2_node56"}],
+  "f2_node04": [ { to: "f2_node05" }, { to: "f2_stair_common-east" } ,{ to: "f2_node06"}],
+  "f2_stair_common-east": [ { to: "f1_stair_common-east" } ],
+  "f2_node05": [ { to: "f2_node06" } ],
+  "f2_node06": [ { to: "f2_node07" }, { to: "f2_node08" } ],
+  "f2_node07": [ { to: "f2_node09" } ,{to: "f2_stair_toilet"}],
+  "f2_node08": [ { to: "f2_node09" }, { to: "f2_stair_northeast" }, { to: "f2_node13" } ],
+  "f2_stair_northeast" :[{ to: "f3_stair_northeast"}  ,{ to:"f2_node13"}],
+  "f2_node09": [ { to: "f2_node10" } ,{ to:"f2_stair_toilet"}],
+  "f2_stair_toilet":[{ to: "f3_stair_toilet"},{ to: "f4_stair_toilet"} ],
+  "f2_node10": [ { to: "f2_node11" } ],
+  "f2_node11": [ { to: "f2_node12" } ],
+  "f2_node13": [ { to: "f2_node14" }, { to: "f2_node18" } ],
+  "f2_node14": [ { to: "f2_node15" } ],
+  "f2_node15": [ { to: "f2_node16" } ],
+  "f2_node16": [ { to: "f2_node17" } ],
+  "f2_node18": [ { to: "f2_node19" } ],
+  "f2_node19": [ { to: "f2_node20" } ],
+  "f2_node20": [ { to: "f2_node21" } ],
+  "f2_node21": [ { to: "f2_node22" } ],
+  "f2_node22": [ { to: "f2_node23" } ],
+  "f2_node23": [ { to: "f2_node24" } ],
+  "f2_node24": [ { to: "f2_node25" } ],
+  "f2_node25": [ { to: "f2_node26" }, { to: "f2_node33" }, { to: "f2_stair_northwest" } ],
+  "f2_stair_northwest": [ { to: "f3_stair_northwest" } ,{ to: "f2_node26"}],
+  "f2_node26": [ { to: "f2_node27" } ],
+  "f2_node27": [ { to: "f2_node28" } ],
+  "f2_node28": [ { to: "f2_node29" } ],
+  "f2_node29": [ { to: "f2_node30" } ],
+  "f2_node30": [ { to: "f2_node31" } ],
+  "f2_node31": [ { to: "f2_node32" } ],
+  "f2_node33": [ { to: "f2_node34" } ],
+  "f2_node34": [ { to: "f2_node35" }, { to: "f2_node36" }, { to: "f2_node37" } ],
+  "f2_node36":[{ to: "f2_node55"} ],
+  "f2_node37": [ { to: "f2_node38" } ],
+  "f2_node38": [ { to: "f2_node39" } ],
+  "f2_node39": [ { to: "f2_node40" } ],
+  "f2_node40": [ { to: "f2_node41" } ],
+  "f2_node42": [ { to: "f2_node43" },{ to: "f2_node05"} ,{ to: "f2_node04"}],
+  "f2_node43": [ { to: "f2_node44" }, { to: "f2_stair_staffroom" } ],
+  "f2_stair_staffroom": [ { to: "f1_stair_staffroom" }, { to: "f3_stair_staffroom" } ],
+  "f2_node44": [ { to: "f2_node45" } ],
+  "f2_node45": [ { to: "f2_node46" } ],
+  "f2_node46": [ { to: "f2_node48" }, { to: "f2_stair_west" } ],
+  "f2_stair_west": [ { to: "f1_stair_west" }, { to: "f3_stair_west" } ],
+  "f2_node48": [ { to: "f2_node49" } ],
+  "f2_node49": [ { to: "f2_node50" }, { to: "f2_node51" } ],
+  "f2_node50": [ { to: "f2_node51" }, { to: "f2_node52" }, { to: "f2_node53" } ],
+  "f2_node51": [ { to: "f2_node52" }, { to: "f2_node53" } ],
+  "f2_node52": [ { to: "f2_node54" } ],
+  "f2_node56": [ { to: "f2_node04" } ],
+  
+//三階のつながり
+"f3_node01": [ { to: "f3_node02" } ,{ to: "f3_node11"},{to:"f3_stair_staffroom"}],
+"f3_node02": [ { to: "f3_node03" } ],
+"f3_node03": [ { to: "f3_node04" } ],
+"f3_node04": [ { to: "f3_node05" } ],
+"f3_node05": [ { to: "f3_node06" } ],
+"f3_node06": [ { to: "f3_node07" } ],
+"f3_node07": [ { to: "f3_node08" } ],
+"f3_node08": [ { to: "f3_node09" } ],
+"f3_node09": [ { to: "f3_node37" } ],//南棟西
+"f3_node10": [ { to: "f3_node31" } ],//西男子トイレ
+"f3_node11": [ { to: "f3_node12" } ,{ to: "f3_node13"}],
+"f3_node12": [ { to: "f3_node14" } ],
+"f3_node13": [ { to: "f3_node14" }, {to: "f3_node19"} ,{to: "f3_stair_northeast" }],
+"f3_stair_northeast": [{ to: "f3_node19"}],
+"f3_node14": [ { to: "f3_node15" } ],
+"f3_node15": [ { to: "f3_node16" } ],
+"f3_node16": [ { to: "f3_node17" } ],
+"f3_node17": [ { to: "f3_node18" } ],
+"f3_node18": [ ],
+"f3_node19": [ { to: "f3_node20" }, {to:"f3_node24"} ],
+"f3_node20": [ { to: "f3_node21" } ],
+"f3_node21": [ { to: "f3_node22" } ],
+"f3_node22": [ { to: "f3_node23" } ],
+"f3_node23": [],
+"f3_node24": [ { to: "f3_node25" } ],
+"f3_node25": [ { to: "f3_node38" } ],
+"f3_node26": [ { to: "f3_node27" } ],
+"f3_node27": [ { to: "f3_node28" } ],
+"f3_node28": [ { to: "f3_node29" } ],
+"f3_node29": [ { to: "f3_node30" } ],
+"f3_node30": [ { to: "f3_node31" },{ to: "f3_stair_northwest" } ],
+"f3_node31": [ { to: "f3_node32" } ],
+"f3_node32": [ { to: "f3_node33" } ],
+"f3_node33": [ { to: "f3_node34" } ],
+"f3_node34": [ { to: "f3_node35" } ],
+"f3_node35": [ { to: "f3_node36" } ],
+"f3_node36": [ { to: "f3_stair_west" } ],
+"f3_node37": [ { to: "f3_node10" },{to: "f3_stair_office"} ],
+"f3_node38": [ { to: "f3_node26" } ],
+"f3_stair_east":[{to: "f3_node39"} ],
+"f3_node39": [ { to: "f3_node40" } ],
+"f3_node40": [ { to: "f3_node41" } ],
+"f3_node41": [ { to: "f3_node42" } ],
+"f3_node42": [ { to: "f3_node43" } ],
+"f3_node43": [],
+//四階のつながり
+    "f4_node01": [ { to: "f4_node02" }  ],
+    "f4_node02":[ { to: "f4_node03" } ],
+    "f4_node03": [ ],
+    "f4_stair_toilet":[ { to: "f4_node01" } ], 
+    //地下のつながり
+     "f0_node01":[ { to: "f0_node02" } ],
+    "f0_node02": [ { to: "f0_node03" } ],
+    "f0_node03": [ { to: "f0_node04" } ],
+    "f3_node04": [ ],
+    "f0_stair_east":[ { to: "f0_node01" } ],
+    "f0_stair_basement":[ { to: "f0_stair_east" } , { to: "f1_stair_basement" } ],
+};
+
+const startInput = document.getElementById("startInput");
+const goalInput  = document.getElementById("goalInput");
+
+const startList = document.getElementById("startSuggestions");
+const goalList  = document.getElementById("goalSuggestions");
+
+graphEdges = makeBidirectional(rawEdges);
+
+const img = document.getElementById("mapImage");
+
+// 内部解像度（論理座標）
+function flooropen(){
+  const floorbtn = document.querySelector(".floor-buttons");
+  floorbtn.style.display = "flex";
+
+}
+let lastActiveBtn = null;
+
+function floorbtnstylechange() {
+  // すでに別で取得・管理されている「currentFloor（現在の階）」の値を使う
+  const targetId = `floor${floor}`; 
+  const currentBtn = document.getElementById(targetId);
+
+  if (!currentBtn) return;
+
+  // 前回のボタンの色を戻す
+  if (lastActiveBtn) {
+    lastActiveBtn.classList.remove('active');
+  }
+   currentBtn.classList.add('active');
+  // 現在の階のボタンの色を変える
+  
+
+  lastActiveBtn = currentBtn;
+}
+
+function floorclose(){
+  const floorbtn = document.querySelector(".floor-buttons");
+  floorbtn.style.display = "none";
+}
+/* ===== 地図切替（階段ピンの再配置も同時に行います） ===== */
+/* =========================================
+   フロア切り替え
+   ========================================= */
+function changeFloor(f) {
+  console.log(`=== changeFloor(${f}) 処理開始 ===`);
+  floor = f;
+  
+  const img = document.getElementById("mapImage");
+  img.src = "floor" + floor + ".svg";
+  
+
+
+
+
+  // 💡 【新規追加】左上の階層表示スクリーンの更新とデバッグログ
+  const indicator = document.getElementById("floorIndicator");
+  if (indicator) {
+    indicator.innerText = floor + "F";
+    console.log(`[changeFloor] 左上の階層表示を [${floor}F] に更新しました。`);
+  } else {
+    console.log("[changeFloor] ⚠️ 警告: HTML内に 'floorIndicator' というIDの要素が見つかりません。");
+  }
+
+  // ポップアップやピンの制御（元の処理）
+  closeStairMenu();
+  renderPins();
+  renderNodeIndex();
+  updateDestination();
+  updateYou();
+  renderSelectablePins();
+  floorbtnstylechange();
+  // キャンバスのクリアと経路の再描画
+  const canvas = document.getElementById("routeCanvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+  if (currentPath) {
+    console.log("[changeFloor] 経路データが保持されているため、新フロアへの再描画を準備します。");
+    img.onload = function() {
+      console.log("[changeFloor] 画像の読み込みが完了したため、drawRoute() を呼び出します。");
+      drawRoute();
+    };
+    if (img.complete) {
+      console.log("[changeFloor] 画像がキャッシュから即時読み込まれたため、drawRoute() を実行します。");
+      drawRoute(); 
+    }
+  }
+  
+  console.log(`=== changeFloor(${f}) 処理終了 ===`);
+}
+
+
+/* ===== 💡 階段ピンを画面に配置する処理 ===== */
+function renderPins() {
+  const area = document.getElementById("stairPinsArea");
+  area.innerHTML = "";
+
+  const nodes = graphNodes[floor] || {};
+
+  for (const id in nodes) {
+    const node = nodes[id];
+
+    let pin = document.createElement("div");
+    pin.classList.add("pin");
+
+    // ===== 種類ごとの分岐 =====
+    if (node.type === "stair") {
+      pin.classList.add("stair-pin");
+
+      if (id === activeHighlightStairId) {
+        pin.classList.add("highlight");
+      }
+
+      pin.onclick = function(e) {
+        e.stopPropagation();
+        showStairMenu(e, id);
+      };
+
+    } else if (node.type === "toilet-pin") {
+      pin.classList.add("toilet-pin", node.gender);
+
+      pin.onclick = function(e) {//後で目的地設定に変更
+        e.stopPropagation();
+        alert(node.name);
+      };
+
+    } else {
+      continue; // 不要なノードはスキップ
+    }
+
+    // ===== 共通処理 =====
+    pin.style.left = (node.x * scale) + "px";
+    pin.style.top  = (node.y * scale) + "px";
+
+ // Math.sqrt(scale) を使うことで、逆比例の度合いを半分くらいに和らげます
+// ピンの大きさを決める変数を用意
+let pinScale = 1;
+
+  if (scale < 1) {  
+  // ① 地図を縮小したとき
+  // 補正をかけず「1」のままにすることで、地図と一緒にピンも自然に小さくなります（巨大化しません）
+  pinScale = 1; 
+  } else {
+  // ② 地図を拡大したとき
+  // Math.pow を使って、変化をさらに緩やかにします
+  // ※ 0.3 の部分を調整することで変化具合を変えられます
+    pinScale = 1 / Math.pow(scale, 0.3); 
+  }
+
+// 計算した pinScale を適用する
+  pin.style.transform = `translate(-50%, -50%) scale(${pinScale})`;
+
+  pin.title = node.name;
+    area.appendChild(pin);
+  }
+}
+/* ===== 💡 何階に行くか選ぶポップアップメニューを表示 ===== */
+/* ===== 何階に行くか選ぶポップアップメニューを表示 ===== */
+function showStairMenu(e, stairId) {
+  const menu = document.getElementById("stairMenu");
+  menu.innerHTML = "";
+  menu.style.display = "flex";
+  menu.style.flexDirection = "column";
+
+const baseId = stairId.replace(/^f\d_/, "");
+const container = document.querySelector(".map-container");
+const node = graphNodes[floor][stairId];
+
+const uiX = node.x * scale ;
+const uiY = node.y * scale ;
+
+menu.style.left = uiX + "px";
+menu.style.top  = uiY + "px";
+  [0, 1, 2, 3, 4].forEach(f => {
+    if (f === floor) return;
+
+    const targetId = "f" + f + "_" + baseId;
+
+    if (graphNodes[f] && graphNodes[f][targetId]) {
+      const btn = document.createElement("button");
+      btn.innerText = f + "Fへ移動";
+
+      btn.onclick = function() {
+        activeHighlightStairId = targetId;
+        changeFloor(f);
+      };
+
+      menu.appendChild(btn);
+    }
+  });
+}
+
+// 画面のどこかをクリックしたらメニューを閉じる、かつハイライトを消す
+function closeStairMenu() {
+  document.getElementById("stairMenu").style.display = "none";
+}
+
+// 画面のどこかをクリックしたらメニューを閉じる、かつハイライトを消す
+// 【修正】map-zoom から map-container に変更し、地図以外の場所でも閉じるようにします
+document.querySelector(".map-container").addEventListener("click", function(e) {
+  // メニュー閉じる
+  closeStairMenu();
+  floorclose();
+  activeHighlightStairId = null;
+  renderPins();
+  sidePanel.classList.remove('open');
+  
+  // 💡 もし「地図画像やピン以外の空欄の背景」をクリックした時だけ
+  // 座標取得やノード探索を行いたい場合は、e.target の判定を入れておくと安全です
+
+  // (今回はそのまま動かすため元の座標取得処理を継続)
+
+  // 座標取得
+  const container = document.querySelector(".map-container");
+  const rect = container.getBoundingClientRect();
+  const clickX = Math.round( (e.clientX - rect.left + container.scrollLeft) / scale );
+  const clickY = Math.round( (e.clientY - rect.top + container.scrollTop) / scale );
+  console.log("クリック座標:", clickX, clickY);
+  
+  // ノード探索（以下、元の処理のまま）
+  // ...
+
+  // ノード探索
+  const currentFloorNodes = graphNodes[floor] || {};
+
+});
+
+
+function setModeStart() {
+  mode = "setStart";
+  renderSelectablePins();
+  updateModeUI();
+  
+  // 💡 画面幅が768px未満（スマホサイズ）の場合のみサイドパネルを閉じる
+  if (window.innerWidth < 800) {
+    sidePanel.classList.remove('open');
+  }
+}
+
+function setModeGoal() {
+  mode = "setGoal";
+  renderSelectablePins();
+  updateModeUI();
+  
+  // 💡 画面幅が768px未満（スマホサイズ）の場合のみサイドパネルを閉じる
+  if (window.innerWidth < 800) {
+    sidePanel.classList.remove('open');
+  }
+}
+
+function setModeNone() {
+  mode = "none";
+  clearSelectablePins();
+  updateModeUI();
+}
+function updateModeUI() {
+  document.querySelectorAll(".mode-buttons button").forEach(btn => {
+    btn.style.background = "#fff";
+    btn.style.color = "#333";
+  });
+
+  if (mode === "setStart") {
+    document.querySelector(".mode-buttons button:nth-child(1)").style.background = "#007aff";
+    document.querySelector(".mode-buttons button:nth-child(1)").style.color = "#fff";
+    document.getElementById("cancelModeBtn").style.display = "inline-block";
+  }
+
+  if (mode === "setGoal") {
+    document.querySelector(".mode-buttons button:nth-child(2)").style.background = "#ff3b30";
+    document.querySelector(".mode-buttons button:nth-child(2)").style.color = "#fff";
+    document.getElementById("cancelModeBtn").style.display = "inline-block";
+  }
+  if (mode === "none") {
+    document.getElementById("cancelModeBtn").style.display = "none";
+  }
+}
+
+
+//サイドパネル
+// ===== サイドパネル制御 =====
+const sidePanel = document.getElementById("sidePanel");
+const menuButton = document.getElementById("menuButton");
+
+menuButton.onclick = () => {
+  sidePanel.classList.toggle("open");
+};
+
+// 外クリックで閉じる
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".search-box")) {
+    startList.innerHTML = "";
+    goalList.innerHTML = "";
+  }
+});
+
+sidePanel.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+// ===== 状態管理 =====
+let activeFilter = "all";
+let sortMode = "name";
+
+// 1. labelsオブジェクトに gym: "体育館" を追加
+const labels = {
+  room: "教室",
+  entrance: "入口",
+  facility: "トイレ",
+  gym: "体育館", // ←追加
+};
+
+
+// ===== ソート =====
+function sortNodes(arr) {
+  if (sortMode === "name") {
+    arr.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+  } else if (sortMode === "id") {
+    arr.sort((a, b) => a.id.localeCompare(b.id));
+  }
+}
+
+function setSort(mode) {
+  sortMode = mode;
+  renderNodeIndex();
+}
+
+
+// ===== ノード分類 =====
+function classifyNode(node) {
+  return node.type;
+}
+
+
+// ===== メイン描画 =====
+function renderNodeIndex() {
+  const container = document.getElementById("nodeIndex");
+  container.innerHTML = "";
+
+  // =========================
+  // フィルタUI（1回だけ）
+  // =========================
+  const filterMenu = document.createElement("div");
+  filterMenu.style.marginBottom = "10px";
+  const label = document.createElement("div");
+  label.className = "controls-label";
+  label.textContent = "絞り込み";
+  container.appendChild(label);
+  
+  // 2. フィルタ用配列に "gym" を追加
+  ["all", "room", "entrance", "facility", "gym"].forEach(type => { // ← "gym" を追加
+    const btn = document.createElement("button");
+
+    btn.innerText = (type === "all") ? "すべて" : labels[type];
+
+    if (activeFilter === type) {
+      btn.style.background = "#2B6360";
+      btn.style.color = "#fff";
+    }
+
+    btn.onclick = (e) => {
+      e.stopPropagation(); // ←これが重要
+      activeFilter = type;
+      renderNodeIndex();
+    };
+
+    filterMenu.appendChild(btn);
+  });
+
+  container.appendChild(filterMenu);
+
+
+  // =========================
+  // フロアジャンプ
+  // =========================
+  const menu = document.createElement("div");
+  menu.id = "indexMenu";
+
+  [0, 1, 2, 3, 4].forEach(f => {
+    const btn = document.createElement("button");
+    btn.innerText = f + "F";
+
+    btn.onclick = () => {
+      document.getElementById("floor-" + f)
+        .scrollIntoView({ behavior: "smooth" });
+    };
+
+    menu.appendChild(btn);
+  });
+
+  container.appendChild(menu);
+
+
+  // =========================
+  // 各フロア描画
+  // =========================
+  [0, 1, 2, 3, 4].forEach(f => {
+    const floorSection = document.createElement("div");
+    floorSection.id = "floor-" + f;
+
+    const title = document.createElement("h3");
+    title.innerText = f + "F";
+    floorSection.appendChild(title);
+
+    const nodes = graphNodes[f] || {};
+
+    // 3. groupsオブジェクトに gym: [] を自動で追加できるように修正（手動追加漏れを防ぐため改良）
+    const groups = {
+      room: [],
+      entrance: [],
+      facility: [],
+      gym: [] // ←追加
+    };
+
+    // ===== ノード収集 =====
+    for (const id in nodes) {
+      const node = nodes[id];
+      if (!node.type) continue;
+
+      if (activeFilter !== "all" && node.type !== activeFilter) continue;
+
+      const type = classifyNode(node);
+      if (!groups[type]) continue;
+
+      groups[type].push({ id, ...node });
+    }
+
+    // ===== カテゴリ描画 =====
+    Object.keys(groups).forEach(type => {
+      if (groups[type].length === 0) return;
+
+      sortNodes(groups[type]);
+
+      const section = document.createElement("div");
+      section.className = "section";
+
+      const label = document.createElement("h4");
+      label.innerText = labels[type];
+      section.appendChild(label);
+
+      groups[type].forEach(node => {
+        const item = document.createElement("div");
+        item.className = "node-item";
+        item.innerText = node.name;
+
+        item.onclick = () => {
+          changeFloor(f);
+
+          smoothFocusNode(node, () => {
+            if (node.type === "stair") return;
+
+            openDestinationConfirm(node.id, node.name);
+          });
+        };
+
+        section.appendChild(item);
+      });
+
+      floorSection.appendChild(section);
+    });
+
+    container.appendChild(floorSection);
+  });
+}
+
+function smoothFocusNode(node, callback) {
+  const container = document.querySelector(".map-container");
+
+  const startScale = scale;
+  const targetScale = 2;
+
+  const startScrollLeft = container.scrollLeft;
+  const startScrollTop  = container.scrollTop;
+
+  const startTime = performance.now();
+  const duration = 300;
+
+  function animate(time) {
+    const progress = Math.min((time - startTime) / duration, 1);
+
+    const ease = 1 - Math.pow(1 - progress, 3);
+
+    // ===== ズーム =====
+    const currentScale = startScale + (targetScale - startScale) * ease;
+    setZoom(currentScale);
+
+    // ===== 目標座標（毎フレーム更新） =====
+    const x = node.x * scale;
+    const y = node.y * scale;
+
+    const centerX = container.clientWidth / 2;
+    const centerY = container.clientHeight / 2;
+
+    const targetScrollLeft = x - centerX;
+    const targetScrollTop  = y - centerY;
+
+    // ===== スクロール補間（←これが重要） =====
+    container.scrollLeft =
+      startScrollLeft + (targetScrollLeft - startScrollLeft) * ease;
+
+    container.scrollTop =
+      startScrollTop + (targetScrollTop - startScrollTop) * ease;
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      if (callback) callback();
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+//現在地設定用の関数//
+let currentLocation = {
+  id: null,
+  floor: null
+};
+function syncInputs() {
+  const startInput = document.getElementById("startInput");
+  const goalInput  = document.getElementById("goalInput");
+
+  if (currentLocation.id) {
+    const node = graphNodes[currentLocation.floor][currentLocation.id];
+    startInput.value = node ? node.name : "";
+  }
+
+  if (destination) {
+    let node = null;
+
+    // フロア跨ぎ対応
+    for (const f in graphNodes) {
+      if (graphNodes[f][destination]) {
+        node = graphNodes[f][destination];
+        break;
+      }
+    }
+
+    goalInput.value = node ? node.name : "";
+  }
+}
+//ノードの双方向化
+function makeBidirectional(edges) {
+  const result = JSON.parse(JSON.stringify(edges));
+
+  for (const from in edges) {
+    for (const edge of edges[from]) {
+      const to = edge.to;
+      if (!result[to]) result[to] = [];
+
+      if (!result[to].some(e => e.to === from)) {
+        result[to].push({ to: from });
+      }
+    }
+  }
+
+  return result;
+}
+
+/* =========================================
+   ダイクストラ法（最短経路）
+   ========================================= */
+function findShortestPath(startId, goalId) {
+
+  if (!startId || !goalId) return null;
+
+  // --- 全ノードをフラット化 ---
+  const nodes = {};
+  for (const f in graphNodes) {
+    for (const id in graphNodes[f]) {
+      nodes[id] = graphNodes[f][id];
+    }
+  }
+
+  // --- 距離・前ノード ---
+  const dist = {};
+  const prev = {};
+  const visited = new Set();
+
+  for (const id in nodes) {
+    dist[id] = Infinity;
+    prev[id] = null;
+  }
+
+  dist[startId] = 0;
+
+  // --- 優先度キュー（簡易） ---
+  function getMinNode() {
+    let minNode = null;
+    let minDist = Infinity;
+
+    for (const id in dist) {
+      if (!visited.has(id) && dist[id] < minDist) {
+        minDist = dist[id];
+        minNode = id;
+      }
+    }
+    return minNode;
+  }
+
+  // --- メインループ ---
+  while (true) {
+    const current = getMinNode();
+    if (!current) break;
+    if (current === goalId) break;
+
+    visited.add(current);
+
+    const edges = graphEdges[current] || [];
+
+    for (const edge of edges) {
+      const next = edge.to;
+
+      if (!nodes[next]) continue;
+
+      // --- 重み：ユークリッド距離 ---
+      const a = nodes[current];
+      const b = nodes[next];
+
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      const weight = Math.sqrt(dx * dx + dy * dy);
+
+      const newDist = dist[current] + weight;
+
+      if (newDist < dist[next]) {
+        dist[next] = newDist;
+        prev[next] = current;
+      }
+    }
+  }
+
+  // --- 到達不可 ---
+  if (dist[goalId] === Infinity) return null;
+
+  // --- 経路復元 ---
+  const path = [];
+  let cur = goalId;
+
+  while (cur) {
+    path.unshift(cur);
+    cur = prev[cur];
+  }
+
+  return path;
+}
+
+/* =========================================
+   経路検索を実行（UIから呼び出す）
+   ========================================= */
+let currentPath = null;
+let pathIndex = 0;
+
+function applyRoute() {
+  if (!currentLocation.id || !destination) {
+    alert("開始地点と目的地を設定してください");
+    return;
+  }
+
+  const path = findShortestPath(currentLocation.id, destination);
+
+  if (!path) {
+    alert("経路が見つかりません");
+    currentPath = null;
+    return;
+  }
+
+currentPath = path;
+  pathIndex = 0;
+  console.log("最短経路:", path);
+  console.log("start:", currentLocation.id);
+  console.log("goal:", destination);
+  
+  document.body.classList.add('route-mode'); // 確実にモードをON
+
+  // ★ タイムラインパネルを自動生成
+  generateRouteTimeline();
+
+  moveToPathIndex(pathIndex);
+  drawRoute();
+
+}
+
+
+/* =========================================
+   経路描画（指定カラーパレット版）
+   ========================================= */
+function drawRoute() {
+  console.log("=== drawRoute() 処理開始 ===");
+
+  if (!currentPath || currentPath.length < 2) {
+    console.log("[drawRoute] 描画エラー: 経路データがない、またはノード数が足りません。");
+    return;
+  }
+
+  const canvas = document.getElementById("routeCanvas");
+  const ctx = canvas.getContext("2d");
+  const img = document.getElementById("mapImage");
+
+  console.log(`[drawRoute] 画像サイズ判定 - clientWidth: ${img.clientWidth}`);
+
+  if (img.clientWidth === 0) {
+    console.log("[drawRoute] ⚠️ 画像が未表示です。onloadで再試行をセットします。");
+    img.onload = function() {
+      console.log("[drawRoute] 画像読み込み完了。再描画します。");
+      drawRoute();
+    };
+    return; 
+  }
+
+  canvas.width = img.clientWidth;
+  canvas.height = img.clientHeight;
+  canvas.style.width = img.clientWidth + "px";
+  canvas.style.height = img.clientHeight + "px";
+  canvas.style.position = "absolute";
+  canvas.style.top = "0";
+  canvas.style.left = "0";
+  canvas.style.pointerEvents = "none";
+
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.beginPath();
+
+  let isDrawing = false; 
+  let drawCount = 0;
+
+  for (let i = 0; i < currentPath.length; i++) {
+    const id = currentPath[i];
+    
+    let node = null;
+    let nodeFloor = null;
+    for (const f in graphNodes) {
+      if (graphNodes[f][id]) {
+        node = graphNodes[f][id];
+        nodeFloor = Number(f);
+        break;
+      }
+    }
+
+    if (!node) continue;
+
+    if (nodeFloor === floor) {
+      const x = node.x;
+      const y = node.y;
+
+      if (!isDrawing) {
+        ctx.moveTo(x, y);
+        isDrawing = true;
+      } else {
+        ctx.lineTo(x, y);
+      }
+      drawCount++;
+    } else {
+      isDrawing = false;
+    }
+  }
+
+  // 💡 【配色の変更】経路の線を指定のメインカラー(#2B6360)に変更
+  ctx.strokeStyle = "#2B6360"; 
+  ctx.lineWidth = 6;
+  ctx.lineJoin = "round";
+  ctx.stroke();
+
+
+  console.log(`=== drawRoute() 描画完了 (現在の階で描画したポイント数: ${drawCount}, 色: #2B6360) ===`);
+}
+
+function clearRoute() {
+  currentPath = null;
+  pathIndex = 0;
+  
+  // ★ タイムライン監視を解除して中身を空に
+  if (timelineObserver) {
+    timelineObserver.disconnect();
+    timelineObserver = null;
+  }
+  const timeline = document.getElementById('routeTimeline');
+  if (timeline) timeline.innerHTML = '';
+
+  // キャンバスの線を消去
+  const canvas = document.getElementById("routeCanvas");
+  const ctx = canvas.getContext("2d");
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.body.classList.remove('route-mode');
+}
+
+/* =========================================
+   経路ナビゲーション
+   ========================================= */
+
+function moveToPathIndex(index) {
+  if (!currentPath) return;
+  if (index < 0 || index >= currentPath.length) return;
+
+  pathIndex = index;
+
+  const nodeId = currentPath[pathIndex];
+
+  let node = null;
+  let nodeFloor = null;
+
+  for (const f in graphNodes) {
+    if (graphNodes[f][nodeId]) {
+      node = graphNodes[f][nodeId];
+      nodeFloor = Number(f);
+      break;
+    }
+  }
+
+  if (!node) return;
+
+  if (floor !== nodeFloor) {
+    changeFloor(nodeFloor);
+  }
+
+  // 👇 順番が重要
+  smoothFocusNode(node);
+  setLocation(nodeId); // user:false
+}
+
+
+function setSort(mode) {
+  sortMode = mode;
+  renderNodeIndex();
+}
+function getMapCoords(e) {
+  const rect = img.getBoundingClientRect();
+
+  const scaleX = img.naturalWidth / rect.width;
+  const scaleY = img.naturalHeight / rect.height;
+
+  return {
+    x: (e.clientX - rect.left) * scaleX,
+    y: (e.clientY - rect.top) * scaleY
+  };
+}
+
+/* =========================================
+   全画面（フルスクリーン）モードの制御
+   ========================================= */
+
+// ① 全画面を開始する関数（ボタンに紐付ける用）
+function toggleFullscreenMode() {
+  
+  const element = document.documentElement;
+  if (element.requestFullscreen) {
+    element.requestFullscreen();
+  } else if (element.webkitRequestFullscreen) {
+    element.webkitRequestFullscreen();
+  }
+
+  // スマホかつ「縦画面」のときだけ横画面推奨アラートを表示
+  if (window.innerWidth <= 800 && window.innerHeight > window.innerWidth) {
+    const alertEl = document.getElementById("landscapeAlert");
+    if (alertEl) alertEl.style.display = "flex";
+  }
+  sidePanel.classList.remove('open');
+  setZoom(0.65);
+document.body.classList.add('isfullscreen-mode'); // 全体の目印をON
+  
+  // 検索ボックスやサイドパネルを閉じる処理など
+  document.querySelector('.google-search-container')?.classList.add('isFullscreen');
+  document.querySelector('.side-panel')?.classList.add('isFullscreen');
+ // 対象の要素（mapcontainer）を取得
+   scrollMapByPx(0, -1000, false);
+   scrollMapByPx(0, 190, false);
+
+}
+
+function scrollMapByPx(pxX, pxY, isSmooth = true) {
+  const container = document.querySelector('.map-container');
+  if (!container) return;
+
+  // 現在のズーム倍率（scale）を取得（ファイル内のグローバル変数 scale を参照）
+  // もし scale が取得できない場合はデフォルトで 1 を使用
+  const currentScale = typeof scale !== 'undefined' ? scale : 1;
+
+  // ズーム倍率を考慮して、実際に親コンテナがスクロールすべき量を計算
+  // 縮尺に関わらず「指定したpx分」正しく動くように倍率を掛け合わせます
+  const actualScrollX = pxX * currentScale;
+  const actualScrollY = pxY * currentScale;
+
+  // 現在のスクロール位置に加算して移動
+  container.scrollBy({
+    left: actualScrollX,
+
+    top: actualScrollY,
+    behavior: isSmooth ? 'smooth' : 'auto'
+  });
+}
+
+// ② 全画面を解除する関数（新しく追加した解除ボタン用）
+function exitFullscreenMode() {
+  if (document.exitFullscreen) {
+    document.exitFullscreen();
+  } else if (document.webkitExitFullscreen) { /* Safari用 */
+    document.webkitExitFullscreen();
+  }
+
+  document.body.classList.remove('isfullscreen-mode');    
+  document.querySelector('.google-search-container')?.classList.remove('isFullscreen');
+  document.querySelector('.side-panel')?.classList.remove('isFullscreen');
+   closeLandscapeAlert();
+}
+
+// ③ ★最重要：全画面状態の変更をリアルタイムに監視する
+// ユーザーが「解除ボタン」を押した時だけでなく、スマホの「Escキー」や「ブラウザ標準のジェスチャー」で全画面を抜けた場合にも100%連動します
+function handleFullscreenChange() {
+  // 現在全画面モードかどうかを判定（全画面なら要素が入り、戻ると null になる）
+  const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
+  const exitBtn = document.getElementById("exitFullscreenBtn");
+
+  if (exitBtn) {
+    if (isFullscreen) {
+      // 全画面モード時のみ、解除ボタンを表示する
+      exitBtn.style.display = "block"; // またはインラインなら "inline-block"
+    } else {
+      // 通常モードに戻ったら、自動的に非表示にする
+      exitBtn.style.display = "none";
+    }
+  }
+}
+
+// ブラウザの全画面切り替えイベントを登録
+document.addEventListener("fullscreenchange", handleFullscreenChange);
+document.addEventListener("webkitfullscreenchange", handleFullscreenChange); // Safari用
+
+// 案内画面を閉じる関数
+function closeLandscapeAlert() {
+  document.getElementById("landscapeAlert").style.display = "none";
+}
+
+
+function updateYou() {
+  let el = document.getElementById("you");
+
+  // 未設定
+  if (!currentLocation.id) {
+    if (el) el.remove();
+    return;
+  }
+
+  // 別階なら消す
+  if (currentLocation.floor !== floor) {
+    if (el) el.remove();
+    return;
+  }
+
+  const node = graphNodes[floor][currentLocation.id];
+
+  if (!node) {
+    if (el) el.remove();
+    return;
+  }
+
+  // 無ければ生成
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "you";
+    el.className = "pin you";
+    document.getElementById("ui-layer").appendChild(el);
+  }
+
+  el.style.left = (node.x * scale) + "px";
+  el.style.top  = (node.y * scale) + "px";
+
+  el.style.transform =
+    `translate(-50%, -50%) scale(${1 / scale})`;
+}
+
+function updateDestination() {
+  let el = document.getElementById("goalMarker");
+
+  // 未設定 → 消す
+  if (!destination) {
+    if (el) el.remove();
+    return;
+  }
+
+  const node = graphNodes[floor][destination];
+
+  // 別階 → 消す
+  if (!node) {
+    if (el) el.remove();
+    return;
+  }
+
+  // 無ければ生成
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "goalMarker";
+    el.className = "pin destination";
+    document.getElementById("ui-layer").appendChild(el);
+  }
+
+  // 描画
+  el.style.left = (node.x * scale) + "px";
+  el.style.top  = (node.y * scale) + "px";
+
+
+}
+
+function handleNodeSelect(id, node) {
+  // ▼ 追加：地点を手動変更したら経路をリセットする
+  if (currentPath) clearRoute(); 
+
+  if (mode === "setStart") {
+    setLocation(id,{ user: true });
+    setModeNone();
+  } 
+  else if (mode === "setGoal") {
+    if (node.type === "stair") return;
+    setDestination(id);
+    setModeNone();
+  }
+}
+
+function clearSelectablePins() {
+  document.querySelectorAll(".selectable").forEach(el => el.remove());
+}
+function renderSelectablePins() {
+  clearSelectablePins();
+
+  if (mode === "none") return;
+
+  const area = document.getElementById("ui-layer");
+  const nodes = graphNodes[floor] || {};
+
+  for (const id in nodes) {
+    const node = nodes[id];
+
+    if (!node.name) continue;
+    if (node.type === "toilet-pin") continue;
+
+    // ★ ここがポイント
+    if (mode === "setGoal" && node.type === "stair"){ 
+      
+      activeHighlightStairId = nodes[id]; // 階段をハイライト
+      continue;
+
+    }
+    // → 目的地モードでは階段を表示しない
+    // → 開始地点モードでは表示する
+
+    const pin = document.createElement("div");
+    pin.className = "pin selectable";
+
+    pin.style.left = (node.x * scale) + "px";
+    pin.style.top  = (node.y * scale) + "px";
+    pin.style.transform =
+      `translate(-50%, -50%) scale(${1 / scale})`;
+
+    pin.title = node.name;
+
+    pin.onclick = (e) => {
+      e.stopPropagation();
+      handleNodeSelect(id, node);
+    };
+
+    area.appendChild(pin);
+  }
+}
+
+//現在位置、目的地管理
+let isUserSettingStart = false;
+
+function setLocation(nodeId, { user = false } = {}) { 
+  if (user && currentPath) {
+    clearRoute();
+  }
+
+  currentLocation.id = nodeId;
+  currentLocation.floor = floor;
+
+  updateYou();
+
+  const node = graphNodes[currentLocation.floor][nodeId];
+  if (node) {
+    document.getElementById("startInput").value = node.name;
+  }
+
+  syncInputs();
+
+  // ユーザー操作のときだけ再計算
+  if (user && destination !== null) {
+    applyRoute();
+  }
+}
+
+function tryApplyRoute() {
+  const hasStart = currentLocation.id;
+  const hasGoal = destination !== null;
+
+  if (!isUserSettingStart) return; // ← 先に弾く
+
+  if (hasStart && hasGoal) {
+    applyRoute();
+    isUserSettingStart = false; // ← 必ずここで消す
+  }
+}
+
+
+
+
+function setDestination(nodeId) {
+  if (currentPath) clearRoute();
+
+  destination = nodeId;
+  updateDestination();
+
+  const node = graphNodes[floor][nodeId] || graphNodes[1][nodeId] || graphNodes[2][nodeId] || graphNodes[3][nodeId];
+  if (node) {
+    // サイドパネル側の入力欄を更新
+    const sideInput = document.getElementById("goalInput");
+    if (sideInput) sideInput.value = node.name;
+    
+    // 💡 新規追加：上部検索バー側の入力欄も更新
+    const topInput = document.getElementById("goalInputTop");
+    if (topInput) topInput.value = node.name;
+  }
+  
+  if (typeof syncInputs === "function") {
+    syncInputs();
+  }
+
+  // 目的地設定＆経路表示が完了した直後にこれを実行
+  document.body.classList.add('route-mode');
+
+ 
+setTimeout(() => {
+  applyRoute();
+}, 900);
+  // ← ここで待機時間を指定（500ミリ秒 ＝ 0.5秒）
+}
+
+
+function getAllNodesFlat() {
+  const list = [];
+
+  for (const f in graphNodes) {
+    for (const id in graphNodes[f]) {
+      const node = graphNodes[f][id];
+      if (!node.name) continue;
+
+      list.push({
+        id,
+        name: node.name,
+        floor: Number(f),
+        type: node.type
+      });
+    }
+  }
+
+  return list;
+}
+
+const allNodes = getAllNodesFlat();
+// 修正する検索メイン関数
+function searchNodes(keyword) {
+  const cleanedKeyword = normalizeSearchText(keyword);
+  const results = [];
+
+  // キーワードが空の場合は何も返さない
+  if (!cleanedKeyword) return results;
+
+  // 全フロアのノードをループ
+  for (const f in graphNodes) {
+    for (const id in graphNodes[f]) {
+      const node = graphNodes[f][id];
+
+      // トイレピンなど、名前のないノードや特定のピンはサジェストから除外
+      if (!node.name || node.type === "toilet-pin") continue;
+
+      // 1. 漢字（正式名）の判定: フロア表記「(1F)」などを除外して比較
+      const pureNodeName = removeFloorNotation(node.name);
+      const cleanedNodeName = normalizeSearchText(pureNodeName);
+
+      // 2. ひらがな（よみがな）の判定: node.kana を比較
+      const cleanedNodeKana = normalizeSearchText(node.kana);
+
+      // 💡 漢字名、またはひらがな名のどちらかにキーワードが含まれていれば結果に追加
+      if (cleanedNodeName.includes(cleanedKeyword) || cleanedNodeKana.includes(cleanedKeyword)) {
+        // 後続の処理（renderSuggestionsなど）で使いやすいように、
+        // ノード情報に floor や id もセットして持たせると便利です
+        results.push({
+          ...node,
+          id: id,
+          floor: Number(f)
+        });
+      }
+    }
+  }
+
+  return results;
+}
+
+function applySelection(node, type) {
+  if (type === "goal" && node.type === "stair") return;
+
+  changeFloor(node.floor);
+
+  smoothFocusNode(graphNodes[node.floor][node.id], () => {
+    if (type === "start") {
+      setLocation(node.id, { user: true });
+    } else {
+      setDestination(node.id);
+    }
+    syncInputs();
+  });
+}
+
+function renderSuggestions(inputEl, listEl, type) {
+  const keyword = inputEl.value;
+  const results = searchNodes(keyword);
+
+  listEl.innerHTML = "";
+
+  results.forEach(node => {
+
+    if (type === "goal" && node.type === "stair") return;
+
+    const item = document.createElement("div");
+    item.className = "suggestion-item";
+    item.innerText = `${node.name}`;
+
+    item.onclick = () => {
+      applySelection(node, type);
+      listEl.innerHTML = "";
+    };
+
+    listEl.appendChild(item);
+  });
+}
+
+startInput.addEventListener("input", () => {
+  renderSuggestions(startInput, startList, "start");
+});
+
+goalInput.addEventListener("input", () => {
+  renderSuggestions(goalInput, goalList, "goal");
+});
+document.addEventListener("click", (e) => {
+  if (!startInput.contains(e.target)) startList.innerHTML = "";
+  if (!goalInput.contains(e.target)) goalList.innerHTML = "";
+});
+/* =========================================
+   サイドパネルを一番上にスクロールする
+   ========================================= */
+function scrollToPanelTop() {
+  console.log("=== scrollToPanelTop() 処理開始 ===");
+
+  // サイドパネルの要素を取得します
+  // ※ "sidePanel" の部分は、実際のサイドパネルのID名（例: "searchPanel" や "sidebar"）に合わせて書き換えてください。
+  const panel = document.getElementById("sidePanel"); 
+
+  if (panel) {
+    // パネル内を滑らかに一番上へスクロール
+    panel.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+    console.log("[scrollToPanelTop] サイドパネルを一番上へスクロールしました。");
+  } else {
+    // パネルのIDが見つからない場合の保険（画面全体を一番上に戻す）
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+    console.log("[scrollToPanelTop] ⚠️ サイドパネルが見つからないため、画面全体を一番上へスクロールしました。");
+  }
+}
+// 上部検索バーの要素を取得
+const goalInputTop = document.getElementById("goalInputTop");
+const goalListTop = document.getElementById("goalListTop");
+
+// 上部検索バーに文字が入力されたらサジェストを表示する
+if (goalInputTop && goalListTop) {
+  goalInputTop.addEventListener("input", () => {
+    renderSuggestions(goalInputTop, goalListTop, "goal");
+  });
+}
+
+
+//スマホ用のｊｓ 
+/* =========================================
+   ボトムシートの引き上げ・引き下げ（ドラッグ）処理
+   ========================================= */
+
+// ① ツマミを自動生成してパネルの一番上に組み込む
+
+
+// ===== 5. ボトムシートのドラッグ（展開・収納）処理 =====
+const thumbWrapper = document.querySelector('.bottom-sheet-thumb-wrapper');
+
+let isDragging = false;
+let startY = 0;
+let startHeight = 0;
+
+
+// ⭕ イベント登録は外側で常に行う（画面回転などのバグを防ぐため）
+if (thumbWrapper && sidePanel) {
+
+  // ① タッチ開始（ツマミを触った瞬間）
+  thumbWrapper.addEventListener('touchstart', (e) => {
+    if (!mediaQuery.matches) return; // スマホ画面じゃなければ無視
+
+    isDragging = true;
+    startY = e.touches[0].clientY; // 触った位置のY座標
+    
+    // ⭕【超重要】閉じている時と開いている時で、計算のスタート高さを分ける
+    if (sidePanel.classList.contains('open')) {
+      // すでに開いている時は、現在の実際のピクセル高さを取得
+      startHeight = sidePanel.getBoundingClientRect().height;
+    } else {
+      // 閉じている時は、見えているツマミの「40px」をスタートの高さにする
+      startHeight = 40; 
+      // ドラッグ開始と同時にopenをつけて、CSSのtranslateYによる画面外押し下げを解除する
+      sidePanel.classList.add('open');
+    }
+    
+    sidePanel.classList.add('dragging');
+    
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  // ② タッチ移動中（指を動かしている間）
+  document.addEventListener('touchmove', (e) => {
+    if (!isDragging || !mediaQuery.matches) return;
+
+    const currentY = e.touches[0].clientY;
+    const deltaY = startY - currentY; // 上に引っ張るとプラスの値になる
+    let newHeight = startHeight + deltaY; // スタートの高さに移動量を足す
+
+    const screenHeight = window.innerHeight;
+    
+    // パネルの引き上げ上限（画面の85%）と下限（40px）の制限
+    if (newHeight > screenHeight * 0.85) newHeight = screenHeight * 0.85;
+    if (newHeight < 40) newHeight = 40;
+
+    // 実際にパネルのCSS高さをリアルタイムに変更！
+    sidePanel.style.height = `${newHeight}px`;
+
+    // 右下の操作ボタン（.controls）も一緒に上に逃がす
+   
+    
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+
+  // ③ タッチ終了（指を離した瞬間）
+  sidePanel.addEventListener('touchend', (e) => {
+  if (!isDragging) return;
+  isDragging = false;
+  sidePanel.classList.remove('dragging');
+  sidePanel.style.transition = 'transform 0.3s ease';
+
+  const endY = e.clientY;
+  const deltaY = endY - startY; // 下方向への移動距離
+
+  // 💡【追加】クリック判定：移動距離が小さく、すぐに離した場合は展開状態（フル）を維持
+  if (Math.abs(deltaY) < 20) {
+    // スワイプ処理をキャンセルし、一番上にしっかりと展開した状態にする
+    currentSheetY = 0;
+    sidePanel.style.transform = `translateY(${currentSheetY}px)`;
+    return; // ここで終了させて、以下の閉じる判定を通さない
+  }
+
+  // 以下は既存のロジックをそのまま活用
+  if (deltaY > 150) {
+    // 一定以上引き下げたら閉じる（最小化）
+    currentSheetY = window.innerHeight * 0.5; // もしくは任意の閉じる位置
+    sidePanel.style.transform = `translateY(${currentSheetY}px)`;
+  } else {
+    // 引き下げが足りない場合はフル展開に戻す
+    currentSheetY = 0;
+    sidePanel.style.transform = `translateY(${currentSheetY}px)`;
+  }
+  });
+}
+
+
+
+// タブレット・PCとスマホが切り替わった時のリセット処理
+function handleTabletChange(e) {
+ 
+  if (!e.matches) {
+    if (sidePanel) {
+      sidePanel.style.height = '';
+      sidePanel.classList.remove('open', 'dragging');
+    }
+    
+  }
+}
+mediaQuery.addEventListener('change', handleTabletChange);
+handleTabletChange(mediaQuery);
+    
+
+
+
+// 地図コンテナ以外の場所でページ全体がピンチズームされるのを完全に防ぐ（スマホ限定）
+document.addEventListener('touchmove', (e) => {
+  if (window.innerWidth <= 800) { // ★スマホ幅のときだけ制限をかける
+    if (e.touches && e.touches.length > 1) {
+      e.preventDefault();
+    }
+  }
+}, { passive: false });
+
+// 最初にページを開いたときに1階の階段ピンを表示させる
+// ===== 使い方モーダルの制御 =====
+document.addEventListener("DOMContentLoaded", () => {
+  const helpModal = document.getElementById("helpModal");
+  const helpOpenBtn = document.getElementById("helpOpenBtn");
+  const helpCloseBtn = document.getElementById("helpCloseBtn");
+
+  // ボタンをクリックしたらモーダルを表示（flexにすることで中央揃えに）
+  helpOpenBtn.addEventListener("click", () => {
+    helpModal.style.display = "flex";
+  });
+
+  // ×ボタンをクリックしたらモーダルを非表示に
+  helpCloseBtn.addEventListener("click", () => {
+    helpModal.style.display = "none";
+  });
+
+  // モーダルの外側（暗い背景部分）をクリックしても閉じるようにする
+  window.addEventListener("click", (event) => {
+    if (event.target === helpModal) {
+      helpModal.style.display = "none";
+    }
+  });
+});
+
+
+/* =========================================
+   スクロール連携・タイムラインナビシステム
+   ========================================= */
+let timelineObserver = null;
+let isProgrammaticScroll = false; // JSからの自動スクロール時にObserverを一時無視するフラグ
+
+// 1. 経路データから縦型タイムラインHTMLを動的に生成する
+function generateRouteTimeline() {
+  const timeline = document.getElementById('routeTimeline');
+  if (!timeline) return;
+
+  timeline.innerHTML = ''; // 初期化
+  if (!currentPath) return;
+
+  currentPath.forEach((nodeId, index) => {
+    let nodeName = "通路";
+    
+    // 全フロアから該当するノードの「名前」を検索
+    for (const f in graphNodes) {
+      if (graphNodes[f][nodeId]) {
+        // 名前がない交差点などの場合は「通路」とする
+        nodeName = graphNodes[f][nodeId].name || `通路 (${f}F)`;
+        break;
+      }
+    }
+
+    // アイテム（要素）の作成
+    const item = document.createElement('div');
+    item.className = 'timeline-item';
+    item.id = `timeline-item-${index}`;
+    item.innerText = nodeName;
+    item.dataset.index = index;
+
+    // 💡 アイテムを直接タップ（クリック）したときも、そこへジャンプできるようにする
+    item.onclick = () => {
+      if (pathIndex === index) return;
+      
+      isProgrammaticScroll = true; // スクロール暴走を防ぐフラグをON
+      pathIndex = index;
+      moveToPathIndex(pathIndex); // 地図を動かす
+      
+      // アクティブ表示の切り替え
+      document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+      item.classList.add('active');
+
+      // パネルの中央にスムーズスクロール
+      item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // アニメーションが終わる頃にフラグをOFFに戻す
+      setTimeout(() => { isProgrammaticScroll = false; }, 500);
+    };
+
+    timeline.appendChild(item);
+  });
+
+  // 初期状態（スタート地点）をアクティブにして中央へ
+  setTimeout(() => {
+    isProgrammaticScroll = true;
+    const firstItem = document.getElementById('timeline-item-0');
+    if (firstItem) {
+      firstItem.classList.add('active');
+      firstItem.scrollIntoView({ behavior: 'auto', block: 'center' });
+    }
+    isProgrammaticScroll = false;
+    
+    // 準備ができたらスクロール監視（Intersection Observer）を開始
+    setupTimelineObserver();
+  }, 100);
+}
+
+// 2. Intersection Observer で「スクロールして中央にきたアイテム」を検知
+function setupTimelineObserver() {
+  const timeline = document.getElementById('routeTimeline');
+  if (!timeline) return;
+
+  if (timelineObserver) timelineObserver.disconnect();
+
+  // 監視の境界条件（パネルの上部45%・下部45%を削り、中央の10%の隙間を通った瞬間を検知）
+  const options = {
+    root: timeline,
+    rootMargin: '-45% 0px -45% 0px',
+    threshold: 0
+  };
+
+  timelineObserver = new IntersectionObserver((entries) => {
+    // ボタンクリックによる自動スクロール中は、この連動処理をスキップ
+    if (isProgrammaticScroll) return; 
+
+    entries.forEach(entry => {
+      // 要素が真ん中のエリアに進入した瞬間
+      if (entry.isIntersecting) {
+        const index = parseInt(entry.target.dataset.index);
+        
+        if (pathIndex !== index) {
+          pathIndex = index;
+          moveToPathIndex(pathIndex); // 地図側を同期して動かす
+          
+          // 全アイテムの見た目を更新
+          document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+          entry.target.classList.add('active');
+        }
+      }
+    });
+  }, options);
+
+  // すべてのタイムラインアイテムを監視に登録
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    timelineObserver.observe(item);
+  });
+}
+// 一時的に選択されたノードのIDを記憶する変数
+let temporarySelectedNodeId = null;
+
+/**
+ * 地点設定の専用ポップアップを開く関数
+ * @param {string} nodeId - ノードのID
+ * @param {string} nodeName - 画面に表示する名前
+ */
+function openDestinationConfirm(nodeId, nodeName) {
+  temporarySelectedNodeId = nodeId; // IDを一時キープ
+  
+  const modal = document.getElementById('destinationConfirmModal');
+  const message = document.getElementById('confirmModalMessage');
+  
+  if (modal && message) {
+    message.innerText = `「${nodeName}」を\nどちらに設定しますか？`;
+    modal.style.display = 'flex'; // 画面中央に表示
+  }
+}
+
+// ページ読み込み時にポップアップ内の3つのボタンにイベントを登録
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById('destinationConfirmModal');
+  const cancelBtn = document.getElementById('confirmCancelBtn');
+  const startBtn = document.getElementById('confirmStartBtn');
+  const okBtn = document.getElementById('confirmOkBtn');
+
+  // 閉じる共通の処理
+  const closeModal = () => {
+    if (modal) modal.style.display = 'none';
+    temporarySelectedNodeId = null;
+  };
+
+  // 1. キャンセルが押されたとき
+  cancelBtn?.addEventListener('click', closeModal);
+
+ // 2. 「開始地点に設定する」が押されたとき
+  startBtn?.addEventListener('click', () => {
+    if (temporarySelectedNodeId) {
+      // 既存の開始地点設定システム（setLocation）を呼び出す
+      if (typeof setLocation === 'function') {
+        // 💡 第二引数に { user: true } を渡すことで、既存のリセット・ルート再構築機構と紐づけます
+        setLocation(temporarySelectedNodeId, { user: true });
+      } else {
+        currentLocation.id = temporarySelectedNodeId;
+        if (typeof updateYou === 'function') updateYou();
+      }
+    }
+    closeModal();
+  });
+
+  // 3. 「目的地に設定する」が押されたとき
+  okBtn?.addEventListener('click', () => {
+    if (temporarySelectedNodeId) {
+      // 既存の目的地設定システム（setDestination）を安全に呼び出す
+      // これにより、経路の自動計算（applyRoute）や入力欄の同期がすべて走ります
+      if (typeof setDestination === 'function') {
+        setDestination(temporarySelectedNodeId);
+      } else {
+        // 万が一関数がない場合のフォールバック
+        destination = temporarySelectedNodeId;
+        if (typeof applyRoute === 'function') applyRoute();
+      }
+    }
+    closeModal();
+  });
+});
+
+// =========================================================
+// 💡 URLのパラメータから目的地を直接入力欄にセットし、ルートを自動案内する機能（フロア表記の揺れ対策版）
+// =========================================================
+window.addEventListener("load", () => {
+  // 1. URLから「?goal=〇〇」の値を解析して取得
+  const urlParams = new URLSearchParams(window.location.search);
+  const goalParam = urlParams.get('goal');
+
+  if (goalParam) {
+    // 💡【新規追加】名前から「(3F)」「3F」「(3階)」などの表記やスペースを取り除くクレンジング関数
+    const normalizeName = (str) => {
+      if (!str) return "";
+      return str
+        .replace(/\(\d+[Ff階]\)/g, "") // "(3F)" や "(3階)" を消去
+        .replace(/\d+[Ff階]/g, "")    // "3F" や "3階" を消去
+        .replace(/[\s\u3000]/g, "");   // 半角・全角スペースを消去
+    };
+
+    // URLパラメータ側の文字をクレンジング（例: "6-4教室"）
+    const cleanedGoalParam = normalizeName(goalParam);
+
+    let targetNodeId = null;
+    let targetFloor = null;
+
+    // 2. 全ての階層のノードから一致するものを探す
+    for (const f in graphNodes) {
+      for (const id in graphNodes[f]) {
+        const node = graphNodes[f][id];
+        
+        // ノード名側の文字もクレンジング（例: "(3F)6-4教室" → "6-4教室"）
+        const cleanedNodeName = normalizeName(node.name);
+
+        // IDが完全一致するか、またはクレンジング後の純粋な名前同士が一致した場合
+        if (id === goalParam || cleanedNodeName === cleanedGoalParam) {
+          targetNodeId = id;
+          targetFloor = Number(f);
+          break;
+        }
+      }
+      if (targetNodeId) break;
+    }
+
+    // 3. 一致するノードが見つかったら、直接目的地に設定する
+    if (targetNodeId && targetFloor !== null) {
+      // そのノードがある階に自動切り替え
+      if (typeof changeFloor === 'function') {
+        changeFloor(targetFloor);
+      }
+
+      // 階層切り替えや描画の完了を少し待ってから実行（500ms）
+      setTimeout(() => {
+        const nodeObj = graphNodes[targetFloor][targetNodeId];
+        if (!nodeObj) return;
+
+        // ① 対象のノードへ画面をスムーズに移動
+        if (typeof smoothFocusNode === 'function') {
+          smoothFocusNode(nodeObj);
+        }
+        
+        // ② 目的地入力欄に「データ側に登録されている正式名」を自動入力
+        // （input内には "(3F)6-4教室" と表示させたい場合は nodeObj.name を、
+        //   フロアなしにしたい場合は cleanedGoalParam を指定してください。ここでは正式名にします）
+        const goalInput = document.getElementById('goalInput');
+        if (goalInput) {
+          goalInput.value = nodeObj.name; 
+        }
+        const goalInputTop = document.getElementById('goalInputTop');
+        if (goalInputTop) {
+          goalInputTop.value = nodeObj.name;
+        }
+
+        // ③ 既存のシステムに合わせて目的地を内部セット
+        if (typeof setDestination === 'function') {
+          setDestination(targetNodeId); 
+        } else if (typeof applyRoute === 'function') {
+          applyRoute();
+        }
+        
+      }, 500); 
+    }
+  }
+});
+
+// =========================================================
+// 💡 ブレを吸収して検索する機能（全角数字・ひらがな・漢字対応）
+// =========================================================
+
+// ユーザーの入力文字をシンプルに整えるヘルパー関数
+function normalizeSearchText(str) {
+  if (!str) return "";
+  let res = str;
+  // 全角英数字およびハイフンを半角に変換（例：「６ー４」→「6-4」）
+  res = res.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (s) => String.fromCharCode(s.charCodeAt(0) - 0xfee0));
+  res = res.replace(/[－‐ー]/g, "-"); // 全角ハイフン・長音を統一
+  res = res.replace(/[\s\u3000]/g, ""); // スペース除去
+  return res.toLowerCase();
+}
+
+// データ側の「(3F)」などのフロア表記を無視するためのヘルパー関数
+function removeFloorNotation(str) {
+  if (!str) return "";
+  return str.replace(/\(\d+[Ff階]\)/g, "").replace(/\d+[Ff階]/g, "");
+}
+
+document.querySelector('.main-home').addEventListener('click', function(e) {
+  // リンクの標準移動を一度キャンセル（メニューを開くため）
+  // すでに開いている状態でもう一度押すとindex.htmlに飛びます
+  const content = document.querySelector('.dropdown-content');
+  if (window.getComputedStyle(content).maxHeight === '0px') {
+    e.preventDefault();
+    content.style.maxHeight = '500px';
+    content.style.opacity = '1';
+    document.querySelector('.arrow-icon').style.transform = 'translateX(-50%) rotate(180deg)';
+  }
+});
+
+
+// =========================================================
+// 💡 ナビゲーションメニューの格納・展開 制御機能
+// =========================================================
+
+/**
+ * ドロップダウンメニューの開閉状態を切り替える関数
+ */
+function toggleDropdownMenu() {
+  const dropdownContent = document.querySelector('.dropdown-content');
+  const arrowIcon = document.querySelector('.arrow-icon');
+  
+  if (!dropdownContent || !arrowIcon) return;
+
+  // 現在のmaxHeight属性を取得（初期値などで空の場合はCSSの0pxとみなす）
+  const currentMaxHeight = dropdownContent.style.maxHeight;
+
+  if (!currentMaxHeight || currentMaxHeight === '0px') {
+    // 【展開処理】しっかりとメニューが見える高さを指定
+    dropdownContent.style.maxHeight = '500px';
+    dropdownContent.style.opacity = '1';
+    // 矢印を上向きに回転
+    arrowIcon.style.transform = 'translateX(-50%) rotate(180deg)';
+    arrowIcon.style.color = '#fff';
+  } else {
+    // 【格納処理】非表示にする
+    dropdownContent.style.maxHeight = '0px';
+    dropdownContent.style.opacity = '0';
+    // 矢印を下向きに戻す
+    arrowIcon.style.transform = 'translateX(-50%) rotate(0deg)';
+    arrowIcon.style.color = '#aaa';
+  }
+}
+
+/**
+ * イベントリスナーの登録（初期化関数）
+ */
+function initDropdownNavigation() {
+  const homeButton = document.querySelector('.main-home');
+  const dropdownContainer = document.querySelector('.nav-item-dropdown');
+
+  if (!homeButton) return;
+
+  // 📱 タップ・クリック時の制御
+  homeButton.addEventListener('click', function(e) {
+    const dropdownContent = document.querySelector('.dropdown-content');
+    const isClosed = !dropdownContent.style.maxHeight || dropdownContent.style.maxHeight === '0px';
+
+    if (isClosed) {
+      // メニューが閉じている場合は、リンク遷移をキャンセルしてメニューを展開する
+      e.preventDefault();
+      toggleDropdownMenu();
+    }
+    // メニューがすでに開いている場合は、そのまま本来の href="../index.html" へ遷移します
+  });
+
+  // 🖱 PC用：マウスがメニューの外に出たら自動で格納する
+  if (dropdownContainer) {
+    dropdownContainer.addEventListener('mouseleave', function() {
+      const dropdownContent = document.querySelector('.dropdown-content');
+      // 開いている場合のみ閉じる
+      if (dropdownContent && dropdownContent.style.maxHeight === '500px') {
+        toggleDropdownMenu();
+      }
+    });
+  }
+}
+
+// 画面読み込み完了時に初期化を実行
+window.addEventListener('DOMContentLoaded', initDropdownNavigation);
+
+/**
+ * 初回アクセス時のウェルカムポップアップを表示する関数
+ */
+function initWelcomePopup() {
+  // すでに一度訪問したことがあるかブラウザの記憶（localStorage）を確認
+  const hasVisited = localStorage.getItem('hasVisitedSchoolMap');
+
+  // ⚠️ テスト用に毎回表示させたい場合は、下の「if (!hasVisited)」の行を「if (true)」に書き換えてください
+  if (!hasVisited) {
+    // 1. ポップアップのHTML構造を動的に作成
+    const overlay = document.createElement('div');
+    overlay.className = 'welcome-modal-overlay';
+
+    const content = document.createElement('div');
+    content.className = 'welcome-modal-content';
+
+    const text = document.createElement('p');
+    text.className = 'welcome-modal-text';
+    // ご指定の文章を設定
+    text.innerHTML = '現在位置と目的地を手動で設定する電子地図です。<br>詳しくは上部検索バー左の❓️より使い方を確認して下さい。';
+
+    const button = document.createElement('button');
+    button.className = 'welcome-modal-btn';
+    button.innerText = '確認しました';
+
+    // 2. ボタンが押されたらポップアップを閉じ、訪問済みとして記録する
+    button.addEventListener('click', function() {
+      overlay.classList.remove('show');
+      // アニメーションが終わった後に要素を削除
+      setTimeout(() => {
+        overlay.remove();
+      }, 400);
+      
+      // ブラウザに「訪問済み」のフラグを保存（次回から表示されなくなります）
+      localStorage.setItem('hasVisitedSchoolMap', 'true');
+    });
+
+    // 3. 要素を組み立てて画面に追加
+    content.appendChild(text);
+    content.appendChild(button);
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+
+    // 4. 画面にふんわり表示させる（少しだけタイミングを遅らせてアニメーションを滑らかに）
+    setTimeout(() => {
+      overlay.classList.add('show');
+    }, 300);
+  }
+}
+
+// 画面読み込み完了時に実行
+window.addEventListener('DOMContentLoaded', initWelcomePopup);
+
+renderPins();
+renderNodeIndex();
+updateModeUI();
+setLocation("f1_node01");
+syncInputs();
+floorbtnstylechange();
+smoothFocusNode(node = graphNodes[floor][currentLocation.id]);
+
+</script>
+
+
+</body>
+</html>
