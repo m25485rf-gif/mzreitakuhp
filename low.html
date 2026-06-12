@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企画一覧 | REIMEI SAI 2026</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+</head>
+<body>
+
+<header class="header">
+  <h1></h1>
+</header>
+
+<header class="topbar">
+  <div class="sns-icons">
+    <a href="https://youtube.com/channel/UCFJVT4Su6274HvXNP6N4FPQ?si=SE4bb-UCBrIO2Qna" target="_blank" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
+    <a href="https://www.instagram.com/reitaku_mizunami/" target="_blank" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+    <a href="https://x.com/reitaku_mizu" target="_blank" aria-label="X"><i class="fa-brands fa-x-twitter"></i></a>
+    <a href="https://share.google/g6ToGVNRpaqc82Zp8" target="_blank" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+  </div>
+  <button class="menu-btn" onclick="openMenu()">
+    <div class="bar"><span></span><span></span><span></span></div>
+    MENU
+  </button>
+</header>
+<div class="super-flashy-ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-move">
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★  </span>
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★ </span>
+    </div>
+  </div>
+</div>
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay-topbar">
+    <button class="close-btn" onclick="closeMenu()">MENU <span class="close-icon">✕</span></button>
+  </div>
+  <div class="menu-overlay-content">
+    <ul>
+      <li><a href="index.html">TOP</a></li>
+      <li><a href="koutyou-aisatu.html">挨拶</a></li>
+      <li><a href="project.html">企画一覧</a></li>
+      <li><a href="event.html">イベント</a></li>
+      <li><a href="map/schoolmap.html">校内地図地図</a></li>
+      <li><a href="other.html">その他</a></li>
+    </ul>
+  </div>
+</div>
+  <section class="projects">
+  <div class="project-search">
+    <input type="text" id="searchBox" placeholder="企画名・クラス名を検索">
+  </div>
+
+  <div class="project-tabs">
+    <a href="yuushi.html">5・6年有志企画</a>
+    <a href="yonen.html">4年企画</a>
+    <a href="kounai.html">校内発表</a>
+    <a href="low.html">1・2・3年企画</a>
+  </div>
+  <div class="page-title">
+    <h1>PROJECTS</h1>
+    <p>麗明祭2026 企画一覧</p>
+  </div>
+  
+</div>
+<div class="project-menu">
+
+
+
+  <!-- ===== 中学発表（1・2・3年企画） ===== -->
+  <div class="category-block" id="low">
+    <div class="category-header">
+      <h3>中学発表</h3>
+      <div class="category-line"></div>
+    </div>
+    <div class="project-grid">
+
+            <!-- 中学1年：1-1 -->
+      <div class="project-card" onclick="toggleDetail('j1a')">
+        <img src="./images/Image_20260611_081243_621.webp" alt="1-1" class="project-image">
+        <div class="project-text">
+          <h3>SDGs</h3>
+          <p>SDGs についてやってます17の項目に分かれて1つ1つの項目の中からひとつ大事だと思うものを決め発表します</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">1-1</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=1-1" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j1a">
+        <div class="detail-inner">
+          <p class="detail-org">1-1</p>
+          <h2 class="detail-title">SDGs</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 1-1</span>
+          <div class="detail-body">
+            <img src="./images/Image_20260611_081243_621.webp" alt="1-1" class="detail-image">
+            <div class="detail-desc"><p>SDGs についてやってます17の項目に分かれて1つ1つの項目の中からひとつ大事だと思うものを決め発表します。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 中学1年：1-2 -->
+      <div class="project-card" onclick="toggleDetail('j1b')">
+        <img src="./images/1-2.webp" alt="1-2" class="project-image">
+        <div class="project-text">
+          <h3>SDGs</h3>
+          <p>SDGs についてやってます17の項目に分かれて1つ1つの項目の中からひとつ大事だと思うものを決め発表します</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">1-2</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=1-2" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j1b">
+        <div class="detail-inner">
+          <p class="detail-org">1-2</p>
+          <h2 class="detail-title">SDGs</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 1-2</span>
+          <div class="detail-body">
+            <img src="./images/1-2.webp" alt="1-2" class="detail-image">
+            <div class="detail-desc"><p>SDGs についてやってます17の項目に分かれて1つ1つの項目の中からひとつ大事だと思うものを決め発表します。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 中学2年：2-1 -->
+      <div class="project-card" onclick="toggleDetail('j2g1')">
+        <img src="./images/mizunamiandkamado.webp" alt="2-1" class="project-image">
+        <div class="project-text">
+          <h3>２年生瑞浪万博2026</h3>
+          <p>2年生では！瑞浪市が抱えている問題なや魅力など楽しくゲームなどで紹介します！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">2-1</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=2-1" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j2g1">
+        <div class="detail-inner">
+          <p class="detail-org">2-1</p>
+          <h2 class="detail-title">２年生瑞浪万博2026</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 2-1</span>
+          <div class="detail-body">
+            <img src="./images/mizunamiandkamado.webp" alt="2-1" class="detail-image">
+            <div class="detail-desc"><p>2年生では！瑞浪市が抱えている問題なや魅力など楽しくゲームなどで紹介します！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 中学2年：2-2 -->
+      <!-- 修正：正しく動くようにIDを j2g1 から j2g2 に変更 -->
+      <div class="project-card" onclick="toggleDetail('j2g2')">
+        <img src="./images/ninenn.webp" alt="2-2" class="project-image">
+        <div class="project-text">
+          <h3>２年生瑞浪万博2026</h3>
+          <p>2年生では！瑞浪市が抱えている問題なや魅力など楽しくゲームなどで紹介します！</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">2-2</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=2-2" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <!-- 修正：正しく動くようにIDを detail-j2g1 から detail-j2g2 に変更 -->
+      <div class="project-detail" id="detail-j2g2">
+        <div class="detail-inner">
+          <p class="detail-org">2-2</p>
+          <h2 class="detail-title">２年生瑞浪万博2026</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 2-2</span>
+          <div class="detail-body">
+            <img src="./images/ninenn.webp" alt="2-2" class="detail-image">
+            <div class="detail-desc"><p>2年生では！瑞浪市が抱えている問題なや魅力など楽しくゲームなどで紹介します！</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 中学3年：陶芸 -->
+      <div class="project-card" onclick="toggleDetail('j3g1')">
+        <img src="./images/3-1.webp" alt="中3-G1" class="project-image">
+        <div class="project-text">
+          <h3>陶芸</h3>
+          <p>日本の歴史や文化を感じながら、ぜひ体験してみてください(^_-)-☆</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">3-1</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=3-1" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j3g1">
+        <div class="detail-inner">
+          <p class="detail-org">中学3ーG1</p>
+          <h2 class="detail-title">陶芸</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 3-1</span>
+          <div class="detail-body">
+            <img src="./images/3-1.webp" alt="中3-G1" class="detail-image">
+            <div class="detail-desc"><p>日本の歴史や文化を感じながら、ぜひ体験してみてください(^_-)-☆</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 中学3年：茶道 -->
+      <div class="project-card" onclick="toggleDetail('j3g2')">
+        <img src="./images/sado.webp" alt="中3-G2" class="project-image">
+        <div class="project-text">
+          <h3>茶道</h3>
+          <p>日本の伝統文化を体験できます。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">作法室</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=作法室" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j3g2">
+        <div class="detail-inner">
+          <p class="detail-org"></p>
+          <h2 class="detail-title">茶道</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 作法室</span>
+          <div class="detail-body">
+            <img src="./images/sado.webp" alt="中3-G2" class="detail-image">
+            <div class="detail-desc"><p>日本の伝統文化を体験できます。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+
+        <!-- 1つ目の企画（琴） -->
+      <div class="project-card" onclick="toggleDetail('j3g3')">
+        <img src="./images/koto.webp" alt="中3-G3" class="project-image">
+        <div class="project-text">
+          <h3>琴</h3>
+          <p>日本の伝統文化を体験できます。琴の基本を学び、心を落ち着ける時間にしてください。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">作法室</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=作法前廊下" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j3g3">
+        <div class="detail-inner">
+          <p class="detail-org">中3-G3</p>
+          <h2 class="detail-title">琴</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 作法室前廊下</span>
+          <div class="detail-body">
+            <img src="./images/koto.webp" alt="中3-G3" class="detail-image">
+            <div class="detail-desc"><p>日本の伝統文化を体験できます。琴の基本を学び、心を落ち着ける時間にしてください。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 2つ目の企画（華道） -->
+      <div class="project-card" onclick="toggleDetail('j3g4')">
+        <img src="./images/kadou.webp" alt="中3-G4" class="project-image">
+        <div class="project-text">
+          <h3>華道</h3>
+          <p>日本の伝統文化を体験できます。華道の基本を学び、心を落ち着ける時間にしてください。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">3-1</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=3-1" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j3g4">
+        <div class="detail-inner">
+          <p class="detail-org">3-1</p>
+          <h2 class="detail-title">華道</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 3-1</span>
+          <div class="detail-body">
+            <img src="./images/kadou.webp" alt="中3-G4" class="detail-image">
+            <div class="detail-desc"><p>日本の伝統文化を体験できます。華道の基本を学び、心を落ち着ける時間にしてください。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+      <!-- 3つ目の企画（書道） -->
+      <div class="project-card" onclick="toggleDetail('j3g5')">
+        <img src="./images/siyodo.webp" alt="中3-G5" class="project-image">
+        <div class="project-text">
+          <h3>書道</h3>
+          <p>日本の伝統文化を体験できます。書道の基本を学び、心を落ち着ける時間にしてください。</p>
+          <!-- 変更：展開前のフッターへボタンを移動＋干渉防止処理 -->
+          <div class="project-footer">
+            <span class="class-tag">3-2</span>
+            <div class="detail-actions" onclick="event.stopPropagation();">
+              <a href="map/schoolmap.html?goal=3-2" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+            </div>
+            <span class="card-arrow">›</span>
+          </div>
+        </div>
+      </div>
+      <div class="project-detail" id="detail-j3g5">
+        <div class="detail-inner">
+          <p class="detail-org">中3-G5</p>
+          <h2 class="detail-title">書道</h2>
+          <span class="detail-location"><i class="fa-solid fa-location-dot"></i> 3-2</span>
+          <div class="detail-body">
+            <img src="./images/siyodo.webp" alt="中3-G5" class="detail-image">
+            <div class="detail-desc"><p>日本の伝統文化を体験できます。書道の基本を学び、心を落ち着ける時間にしてください。</p></div>
+          </div>
+          <!-- 変更：詳細画面からボタンを削除 -->
+        </div>
+      </div>
+
+    </div><!-- .project-grid -->
+  </div><!-- .category-block -->
+
+</section>
+
+<script src="script.js"></script>
+ <nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <i class="fa-solid fa-house"></i><br>
+    ホーム
+  </a>
+
+  <a href="koutyou-aisatu.html" class="nav-item">
+    <i class="fa-solid fa-comments"></i><br>
+    挨拶
+  </a>
+
+  <a href="project.html" class="nav-item">
+    <i class="fa-solid fa-list"></i><br>
+    企画
+  </a>
+
+  <a href="event.html" class="nav-item">
+    <i class="fa-solid fa-calendar"></i><br>
+    イベント
+  </a>
+
+  <a href="map/schoolmap.html" class="nav-item">
+    <i class="fa-solid fa-map"></i><br>
+    校内地図
+  </a>
+
+  <a href="other.html" class="nav-item">
+    <i class="fa-solid fa-circle-info"></i><br>
+    その他
+  </a>
+</nav>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>イベント</title>
+
+  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+
+<header class="header">
+  <h1></h1>
+</header>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <div class="sns-icons">
+
+    <a href="https://youtube.com/channel/UCFJVT4Su6274HvXNP6N4FPQ?si=SE4bb-UCBrIO2Qna" target="_blank" aria-label="YouTube">
+      <i class="fa-brands fa-youtube"></i>
+    </a>
+
+    <a href="https://www.instagram.com/reitaku_mizunami/" target="_blank" aria-label="Instagram">
+      <i class="fa-brands fa-instagram"></i>
+    </a>
+
+    <a href="https://x.com/reitaku_mizu" target="_blank" aria-label="X">
+      <i class="fa-brands fa-x-twitter"></i>
+    </a>
+
+    <a href="https://share.google/g6ToGVNRpaqc82Zp8" target="_blank" aria-label="Facebook">
+      <i class="fa-brands fa-facebook"></i>
+    </a>
+
+  </div>
+
+  <button class="menu-btn" onclick="openMenu()">
+    <div class="bar">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    MENU
+  </button>
+</header>
+<div class="super-flashy-ticker">
+  <div class="ticker-wrap">
+    <div class="ticker-move">
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★  </span>
+      <span class="ticker-item">★ hpに校内地図が超絶☆爆裂大実装！！ ★ 下の「校内地図」から最高の激動地図を体験しよう！！ ★ 急げ！時代に乗り遅れるな！ ★ </span>
+    </div>
+  </div>
+</div>
+<!-- MENU OVERLAY -->
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay-topbar">
+    <button class="close-btn" onclick="closeMenu()">
+      MENU <span class="close-icon">✕</span>
+    </button>
+  </div>
+
+  <div class="menu-overlay-content">
+    <ul>
+      <li><a href="index.html">TOP</a></li>
+      <li><a href="koutyou-aisatu.html">挨拶</a></li>
+      <li><a href="project.html">企画一覧</a></li>
+      <li><a href="event.html">イベント</a></li>
+      <li><a href="map/schoolmap.html">校内地図地図</a></li>
+      <li><a href="other.html">その他</a></li>
+    </ul>
+  </div>
+</div>
+
+<section class="timetable">
+
+  <h2>タイムテーブル</h2>
+
+  <div class="timetable-container">
+
+
+<div class="day-table">
+
+  <h3>舞台発表</h3>
+  <!-- 変更：場所を上部に一括表示 -->
+  <p class="timetable-location">【会場：体育館】</p>
+   <a href="map/schoolmap.html?goal=第一体育館" class="map-link-btn"><i class="fa-solid fa-map"></i> ここに行く</a>
+
+  <div class="table">
+
+    <!-- 変更：「場所」の列を削除 -->
+    <div class="row header">
+      <div>時間</div>
+      <div>イベント</div>
+    </div>
+
+    <!-- 変更：各行の「体育館」の列をすべて削除 -->
+    <div class="row">
+      <div>13:20</div>
+      <div>開場</div>
+    </div>
+
+    <div class="row">
+      <div>13:40〜13:45</div>
+      <div>開会</div>
+    </div>
+
+    <div class="row">
+      <div>13:45〜14:05</div>
+      <div>吹奏楽</div>
+    </div>
+
+    <div class="row">
+      <div>14:10〜14:15</div>
+      <div>開会動画</div>
+    </div>
+
+    <div class="row">
+      <div>14:15〜14:25</div>
+      <div>三代目青春捜索Men's</div>
+    </div>
+
+    <div class="row">
+      <div>14:25〜14:35</div>
+      <div>あいさつ活性化委員会</div>
+    </div>
+
+    <div class="row">
+      <div>14:35〜14:50</div>
+      <div>第一休憩</div>
+    </div>
+
+    <div class="row">
+      <div>14:55〜15:15</div>
+      <div>太鼓部</div>
+    </div>
+
+    <div class="row">
+      <div>15:20〜15:30</div>
+      <div>タンクトップしか勝たん</div>
+    </div>
+
+    <div class="row">
+      <div>15:30〜15:40</div>
+      <div>シークレット①</div>
+    </div>
+
+    <div class="row">
+      <div>15:40〜15:50</div>
+      <div>PULSE</div>
+    </div>
+
+    <div class="row">
+      <div>15:50〜16:05</div>
+      <div>第二休憩</div>
+    </div>
+
+    <div class="row">
+      <div>16:10〜16:20</div>
+      <div>シークレット②</div>
+    </div>
+
+    <div class="row">
+      <div>16:20〜16:30</div>
+      <div>LANA</div>
+    </div>
+
+    <div class="row">
+      <div>16:30〜16:35</div>
+      <div>ミスミスター発表</div>
+    </div>
+
+    <div class="row">
+      <div>16:40〜17:00</div>
+      <div>表彰タイム</div>
+    </div>
+
+    <div class="row">
+      <div>17:00〜17:15</div>
+      <div>108HZ（後夜祭一部）</div>
+    </div>
+
+    <div class="row">
+      <div>17:15〜17:30</div>
+      <div>後夜祭二部</div>
+    </div>
+
+  </div>
+
+</div>
+
+
+  </div>
+
+</section>
+
+<footer class="footer">
+  <p>© 2026 REIMEI SAI</p>
+</footer>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+ <nav class="bottom-nav">
+  <a href="index.html" class="nav-item">
+    <i class="fa-solid fa-house"></i><br>
+    ホーム
+  </a>
+
+  <a href="koutyou-aisatu.html" class="nav-item">
+    <i class="fa-solid fa-comments"></i><br>
+    挨拶
+  </a>
+
+  <a href="project.html" class="nav-item">
+    <i class="fa-solid fa-list"></i><br>
+    企画
+  </a>
+
+  <a href="event.html" class="nav-item">
+    <i class="fa-solid fa-calendar"></i><br>
+    イベント
+  </a>
+
+  <a href="map/schoolmap.html" class="nav-item">
+    <i class="fa-solid fa-map"></i><br>
+    校内地図
+  </a>
+
+  <a href="other.html" class="nav-item">
+    <i class="fa-solid fa-circle-info"></i><br>
+    その他
+  </a>
+</nav>
